@@ -45,7 +45,25 @@ For CD-HIT: `alignmentstats.py`
 
 # Running the software
 
-Before the first run, download and unpack the trained Random Forests in the same directory as the PconsC3 code. You should have six subdirectories named `tforest0, tforest1,...tforest5`. You can get them from [Google Drive](https://drive.google.com/open?id=0BxpeugdrylmAV2pwVXpPcW5JR3c) or a [local mirror](https://share.ics.aalto.fi/project/pconsc2/pconsc3.forests.all.tar.xz) (378MiB). If you just want to give PconsC3 a try or for some other reason need a smaller archive, feel free to download the mini-version either from [Google Drive](https://drive.google.com/open?id=0BxpeugdrylmAS1UzNG1oemh3Y3c) or [local mirror](https://share.ics.aalto.fi/project/pconsc2/minitrees.tar.xz) (38MB), being advised that this version may not perform as well as the fully-fledged one (but will be roughly 10x faster!).
+Before the first run, download and unpack the trained Random Forests in the same directory as the PconsC3 code. You should have six subdirectories named `tforest0, tforest1,...tforest5`. 
+
+## 🔗 Access to Required Data Files
+
+Due to GitHub file size limitations, the necessary `.hdf5` and tree files are hosted externally.
+
+👉 [📁 Access PconsC3 files on Google Drive](https://drive.google.com/drive/folders/1tarnHJf_epacU8_8ZJTnKnlwXqi0MNm7?usp=share_link)
+
+### Contents:
+- `hdf5_files/`: contains `tlayer0.hdf5` to `tlayer5.hdf5`
+- `tree_layers/`: contains zipped versions of `tlayer1/` to `tlayer5/`
+
+After downloading:
+- Place the `.hdf5` files at the root of the repository
+- Unzip the tree folders and place them where required by your pipeline (e.g., `src/` or your model path)
+
+---
+
+
 
 ```
 > tar -xJf pconsc3-forests.tar.xz
