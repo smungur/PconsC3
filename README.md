@@ -102,6 +102,57 @@ You can name these files any way you want, but assuming your alignment is named 
     ./predict.py myprotein.gdca myprotein.0.02.plm20 external.RR netsurf.rsa psipred.ss2 myprotein.stats myprotein.fas outputfile
     ```
     This will run for a while, but will provide you with estimates of running time. It will result in a number of intermediate files being generated: `outputfile.l0, outputfile.l1...outputfile.l5` and an `outputfile.RR` containing final predictions in RR format (by default only non-local prediction are output).
+## 🐳 Running with Docker
+
+If you prefer using Docker, you can build and run the container as follows:
+
+```bash
+# Build the image (run this from the root of the project)
+docker build -t pconsc3 .
+
+# Run the container interactively, mounting the current directory into /app
+docker run -it --rm -v $(pwd):/app pconsc3 bash
+
+## 🐳 Running the Prediction Inside Docker
+
+Once inside the Docker container (see section above), you can run the prediction script using the following command:
+
+```bash
+python3 predict.py \
+  data/1AHSC/gdca.out \
+  data/1AHSC/plmdca_parsed.out \
+  data/1AHSC/phycmap_parsed.out \
+  data/1AHSC/netsurf.out \
+  data/1AHSC/psipred.ss2 \
+  data/1AHSC/alignment.stats \
+  data/1AHSC/alignment.a3m \
+  /app \
+  0 \
+  results/1AHSC/1AHSC_output
+### ▶️ Without Docker (native execution)
+
+Make sure all dependencies are installed and the working directory is set to the project root. Then run:
+
+```bash
+python3 predict.py \
+  data/1AHSC/gdca.out \
+  data/1AHSC/plmdca_parsed.out \
+  data/1AHSC/phycmap_parsed.out \
+  data/1AHSC/netsurf.out \
+  data/1AHSC/psipred.ss2 \
+  data/1AHSC/alignment.stats \
+  data/1AHSC/alignment.a3m \
+  /Users/KrishnaMungur_1/Documents/INFO_F439/PconsC3 \
+  0 \
+  results/1AHSC/1AHSC_output
+  
+  Replace the following argument with the absolute path to your local copy of the PconsC3 project:
+    /Users/KrishnaMungur_1/Documents/INFO_F439/PconsC3
+  
+This should point to the root directory containing the source code, `predict.py`, and the `.hdf5` files.
+
+Alternatively, if you are already in the root of the project, you can use a relative path like `.` instead.
+
 
 # Parallel version and HDF5 support (recommended, even for non-parallel usage)
 
