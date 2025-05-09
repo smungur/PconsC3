@@ -1,0 +1,82 @@
+# For publication of results, please cite:
+# ...
+# ... Michael Schantz Klausen, Martin Closter Jespersen, Henrik Nielsen, Kamilla Kjærgaard Jensen, 
+# ... Vanessa Isabell Jurtz, Casper Kaae Sønderby, Morten Otto Alexander Sommer, Ole Winther, 
+# ... Morten Nielsen, Bent Petersen, and Paolo Marcatili. 
+# ... NetSurfP-2.0: Improved prediction of protein structural features by integrated deep learning.
+# ... Proteins: Structure, Function, and Bioinformatics (Feb. 2019).
+# ... https://doi.org/10.1002/prot.25674
+# ...
+#
+# Column 1: Class assignment - B for buried or E for Exposed - Threshold: 25% exposure, but not based on RSA
+# Column 2: Amino acid
+# Column 3: Sequence name
+# Column 4: Amino acid number
+# Column 5: Relative Surface Accessibility - RSA
+# Column 6: Absolute Surface Accessibility
+# Column 7: Not used
+# Column 8: Probability for Alpha-Helix
+# Column 9: Probability for Beta-strand
+# Column 10: Probability for Coil
+E P  1OTFF                  1    0.506  71.840   0.000   0.000   0.004   0.996
+E I  1OTFF                  2    0.490  90.578   0.000   0.000   0.815   0.184
+B A  1OTFF                  3    0.187  20.622   0.000   0.000   0.934   0.065
+E Q  1OTFF                  4    0.500  89.298   0.000   0.000   0.982   0.018
+B L  1OTFF                  5    0.210  38.524   0.000   0.000   0.952   0.048
+E Y  1OTFF                  6    0.484 103.480   0.000   0.001   0.947   0.053
+E I  1OTFF                  7    0.279  51.545   0.000   0.000   0.900   0.099
+E I  1OTFF                  8    0.267  49.364   0.000   0.001   0.447   0.552
+E E  1OTFF                  9    0.789 137.865   0.000   0.001   0.030   0.969
+E G  1OTFF                 10    0.829  65.218   0.000   0.003   0.003   0.993
+E R  1OTFF                 11    0.313  71.683   0.000   0.003   0.003   0.994
+E T  1OTFF                 12    0.514  71.267   0.000   0.003   0.001   0.996
+E D  1OTFF                 13    0.759 109.324   0.000   0.985   0.000   0.015
+E E  1OTFF                 14    0.773 135.120   0.000   0.991   0.000   0.009
+E Q  1OTFF                 15    0.426  76.100   0.000   0.993   0.000   0.007
+E K  1OTFF                 16    0.293  60.230   0.000   0.997   0.000   0.003
+E E  1OTFF                 17    0.523  91.290   0.000   0.999   0.000   0.001
+E T  1OTFF                 18    0.473  65.591   0.000   0.999   0.000   0.001
+B L  1OTFF                 19    0.238  43.548   0.000   0.999   0.000   0.001
+B I  1OTFF                 20    0.221  40.819   0.000   1.000   0.000   0.000
+E R  1OTFF                 21    0.569 130.304   0.000   1.000   0.000   0.000
+E Q  1OTFF                 22    0.498  88.965   0.000   0.999   0.000   0.001
+B V  1OTFF                 23    0.223  34.343   0.000   0.999   0.000   0.001
+B S  1OTFF                 24    0.215  25.245   0.000   0.999   0.000   0.001
+E E  1OTFF                 25    0.562  98.221   0.000   0.998   0.000   0.002
+E A  1OTFF                 26    0.299  32.911   0.000   0.998   0.000   0.002
+B M  1OTFF                 27    0.149  29.894   0.000   0.996   0.000   0.004
+B A  1OTFF                 28    0.170  18.774   0.000   0.995   0.000   0.005
+E N  1OTFF                 29    0.791 115.795   0.000   0.990   0.000   0.010
+E S  1OTFF                 30    0.593  69.460   0.000   0.962   0.000   0.038
+E L  1OTFF                 31    0.330  60.465   0.000   0.787   0.000   0.213
+E D  1OTFF                 32    0.921 132.728   0.000   0.001   0.000   0.999
+B A  1OTFF                 33    0.208  22.976   0.000   0.002   0.004   0.994
+E P  1OTFF                 34    0.504  71.570   0.000   0.002   0.003   0.995
+E L  1OTFF                 35    0.525  96.197   0.000   0.953   0.000   0.047
+E E  1OTFF                 36    0.858 149.850   0.000   0.972   0.000   0.028
+E R  1OTFF                 37    0.587 134.433   0.000   0.959   0.001   0.040
+E V  1OTFF                 38    0.259  39.820   0.000   0.003   0.305   0.692
+E R  1OTFF                 39    0.690 158.040   0.000   0.001   0.858   0.141
+E V  1OTFF                 40    0.386  59.309   0.000   0.001   0.898   0.101
+E L  1OTFF                 41    0.457  83.701   0.000   0.001   0.971   0.027
+E I  1OTFF                 42    0.342  63.284   0.000   0.000   0.952   0.047
+E T  1OTFF                 43    0.446  61.840   0.000   0.001   0.954   0.045
+E E  1OTFF                 44    0.600 104.748   0.000   0.001   0.943   0.056
+B M  1OTFF                 45    0.203  40.637   0.000   0.000   0.517   0.482
+E P  1OTFF                 46    0.473  67.066   0.000   0.005   0.186   0.809
+E K  1OTFF                 47    0.567 116.578   0.000   0.953   0.000   0.047
+E N  1OTFF                 48    0.858 125.616   0.000   0.935   0.000   0.064
+E H  1OTFF                 49    0.481  87.435   0.000   0.917   0.003   0.081
+E F  1OTFF                 50    0.328  65.777   0.000   0.050   0.402   0.548
+E G  1OTFF                 51    0.448  35.270   0.000   0.014   0.420   0.566
+E I  1OTFF                 52    0.511  94.478   0.000   0.013   0.624   0.364
+E G  1OTFF                 53    0.860  67.717   0.000   0.018   0.001   0.982
+E G  1OTFF                 54    0.789  62.133   0.000   0.037   0.001   0.962
+E E  1OTFF                 55    0.644 112.504   0.000   0.002   0.874   0.123
+E P  1OTFF                 56    0.498  70.643   0.000   0.004   0.896   0.100
+E A  1OTFF                 57    0.315  34.673   0.000   0.518   0.016   0.466
+E S  1OTFF                 58    0.610  71.435   0.000   0.756   0.005   0.239
+E K  1OTFF                 59    0.718 147.611   0.000   0.758   0.005   0.237
+E V  1OTFF                 60    0.433  66.522   0.000   0.456   0.006   0.538
+E R  1OTFF                 61    0.645 147.813   0.000   0.204   0.009   0.787
+E R  1OTFF                 62    0.893 204.555   0.000   0.003   0.000   0.997
