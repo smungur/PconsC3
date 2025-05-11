@@ -1,9 +1,13 @@
 # PconsC3
+
 Faster, more accurate and entirely open source method for predicting contacts in proteins
 
+> 🔄 This project is adapted from the original [PconsC3 implementation](https://github.com/mskwark/PconsC3) by Marcin J. Skwark and collaborators.
+
 If you use PconsC3 please cite:
- *  Carlo Baldassi, Marco Zamparo, Christoph Feinauer, Andrea Procaccini, Riccardo Zecchina, Martin Weigt and Andrea Pagnani, (2014) PLoS ONE 9(3): e92721. doi:10.1371/journal.pone.0092721
- *  Christoph Feinauer, Marcin J. Skwark, Andrea Pagnani, and Erik Aurell. (2014) PLoS Comp Bio: e1003847. doi:10.1371/journal.pcbi.1003847
+
+* Carlo Baldassi, Marco Zamparo, Christoph Feinauer, Andrea Procaccini, Riccardo Zecchina, Martin Weigt and Andrea Pagnani, (2014) PLoS ONE 9(3): e92721. doi:10.1371/journal.pone.0092721
+* Christoph Feinauer, Marcin J. Skwark, Andrea Pagnani, and Erik Aurell. (2014) PLoS Comp Bio: e1003847. doi:10.1371/journal.pcbi.1003847
 
 # Prerequisites
 
@@ -18,91 +22,53 @@ If you use PconsC3 please cite:
 
 If Julia, Python and CD-HIT are in your search path, you are set to go. Otherwise, you need to either add them to the path, or modify the necessary scripts.
 
-For Julia: `rungdca.py` and `runplm.py`
-For CD-HIT: `alignmentstats.py`
+# 📂 Dataset Structure
 
-# Installation
+This implementation uses the dataset from the article:
 
-1. Check out PconsC3 from GitHub
-    ```
-    git checkout https://github.com/mskwark/PconsC3.git
-    ````
-2. Install Julia packages. Start Julia and install:
-    * [NLopt.jl](https://github.com/JuliaOpt/NLopt.jl).
-    ```
-    julia> Pkg.add("NLopt")
-    ```
-    * [GaussDCA](https://github.com/carlobaldassi/GaussDCA.jl)
-    ```
-    julia> Pkg.clone("https://github.com/carlobaldassi/GaussDCA.jl")
-    julia> Pkg.clone("https://github.com/carlobaldassi/ArgParse.jl")
-    ```
-    * [PlmDCA](http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1003847). Install a (very slightly) modified version of [PlmDCA.jl](https://github.com/pagnani/PlmDCA)
-    ```
-    julia> Pkg.clone("https://github.com/mskwark/PlmDCA")
-    ```
-3. Make sure the prerequisites are installed.
+> **Michel M, Skwark MJ, Menéndez Hurtado D, Ekeberg M, Elofsson A.**
+> *Predicting accurate contacts in thousands of Pfam domain families using PconsC3.*
+> Bioinformatics. 2017;33(18):2859–2866. [doi:10.1093/bioinformatics/btx332](https://doi.org/10.1093/bioinformatics/btx332)
 
-# Running the software
+The dataset contains **210 protein domains** from the Pfam database as referenced in the article.
 
-Before the first run, download and unpack the trained Random Forests in the same directory as the PconsC3 code. You should have six subdirectories named `tforest0, tforest1,...tforest5`. 
+All protein input files are organized under the `data/` directory.
+Each subdirectory (e.g., `data/1AHSC/`) corresponds to one protein domain and contains the following files:
 
-## 🔗 Access to Required Data Files
-
-Due to GitHub file size limitations, the necessary `.hdf5` and tree files are hosted externally.
-
-👉 [📁 Access PconsC3 files on Google Drive](https://drive.google.com/drive/folders/1tarnHJf_epacU8_8ZJTnKnlwXqi0MNm7?usp=share_link)
-
-### Contents:
-- `hdf5_files/`: contains `tlayer0.hdf5` to `tlayer5.hdf5`
-- `tree_layers/`: contains zipped versions of `tlayer1/` to `tlayer5/`
-
-After downloading:
-- Place the `.hdf5` files at the root of the repository
-- Unzip the tree folders and place them where required by your pipeline (e.g., `src/` or your model path)
+```
+gdca.out
+plmdca_parsed.out
+phycmap_parsed.out
+netsurf.out
+psipred.ss2
+alignment.stats
+alignment.a3m
+```
 
 ---
 
+## ▶️ Running PconsC3
 
+To run the prediction on a given protein (e.g., `1AHSC`), use the following command:
 
+```bash
+python3 predict.py \
+  data/1AHSC/gdca.out \
+  data/1AHSC/plmdca_parsed.out \
+  data/1AHSC/phycmap_parsed.out \
+  data/1AHSC/netsurf.out \
+  data/1AHSC/psipred.ss2 \
+  data/1AHSC/alignment.stats \
+  data/1AHSC/alignment.a3m \
+  /absolute/path/to/PconsC3 \
+  0 \
+  results/1AHSC/1AHSC_output
 ```
-> tar -xJf pconsc3-forests.tar.xz
-```
 
-You may want to put them on a fast filesystem (on a relatively recent Linux machine `/dev/shm/` is a good choice and by default PconsC3 will look for them there (i.e. it will check if `/dev/shm/tforest0` etc. exist and are sane). As a fallback it will look in the same directory `./predict.py` is located. If you want to change it, you need to modify `forestlocation` variable in the head of `./predict.py`. 
+> 🔁 Replace `/absolute/path/to/PconsC3` with the full path to your local copy of the repository.
+> If you are already in the root of the project, you can use `.` instead.
 
-To run PconsC3, you need to have at hand:
- * Your input alignment in FASTA format, retaining only these columns that you want to run the prediction for (most often: all the match states/amino acids in your target sequence). For A3M alignments this can be attained by filtering all the lowercase letters (inserts) from the sequences.
- * Predicted secondary structure in a PSIPRED ss2 format. Download or run [PSIPRED here](http://bioinf.cs.ucl.ac.uk/psipred/)
- * Predicted relative solvent accessibility (RSA) in NetSurfP format. Download or run [NetSurfP here](http://www.cbs.dtu.dk/services/NetSurfP/)
- * A source of external estimates of contact propensities in a [CASP RR format](http://predictioncenter.org/casp8/index.cgi?page=format#RR) to act as a contact prior. We have tested the method with CMAPpro and PhyCMAP, but other methods should work as well.
-
-You can name these files any way you want, but assuming your alignment is named `myprotein.fas`, your contact priors are named `external.RR`, secondary structure prediction file is named `psipred.ss2` and RSA is named `netsurf.rsa`, to run the prediction do the following. 
-
- 1. Infer evolutionary couplings with GaussDCA:
-    ```
-    ./rungdca.py myprotein.fas
-    ```
-    It will produce a file named `myprotein.gdca`
-
- 2. Infer evolutionary couplings with plmDCA.jl:
-    ```
-    ./runplm.py myprotein.fas
-    ```
-    It will produce a file named `myprotein.0.02.plm20`
-
- 3. Compute alignment statistics:
-    ```
-    ./alignmentstats.py myprotein.fas
-    ```
-    It will produce a file named `myprotein.stats`
-
- 4. Run PconsC3:
-    ```
-    ./predict.py myprotein.gdca myprotein.0.02.plm20 external.RR netsurf.rsa psipred.ss2 myprotein.stats myprotein.fas outputfile
-    ```
-    This will run for a while, but will provide you with estimates of running time. It will result in a number of intermediate files being generated: `outputfile.l0, outputfile.l1...outputfile.l5` and an `outputfile.RR` containing final predictions in RR format (by default only non-local prediction are output).
-## 🐳 Running with Docker
+# 🐳 Running with Docker
 
 If you prefer using Docker, you can build and run the container as follows:
 
@@ -112,6 +78,29 @@ docker build -t pconsc3 .
 
 # Run the container interactively, mounting the current directory into /app
 docker run -it --rm -v $(pwd):/app pconsc3 bash
+```
+
+> 💡 **Note for macOS users**:
+> Based on personal experience, running PconsC3 natively on macOS may cause compatibility issues.
+> Using Docker is therefore the recommended and most reliable method.
+
+### 🔍 Docker command explained
+
+```bash
+docker run -it --rm -v $(pwd):/app pconsc3 bash
+```
+
+* `-it` : interactive terminal mode — lets you interact with the container
+* `--rm` : automatically removes the container after exit
+* `-v $(pwd):/app` : mounts your current folder into `/app` inside the container
+* `pconsc3` : the name of the Docker image you built
+* `bash` : opens a shell in the container so you can run commands
+
+To leave the container after you're done:
+
+```bash
+exit
+```
 
 ## 🐳 Running the Prediction Inside Docker
 
@@ -129,64 +118,49 @@ python3 predict.py \
   /app \
   0 \
   results/1AHSC/1AHSC_output
-### ▶️ Without Docker (native execution)
-
-Make sure all dependencies are installed and the working directory is set to the project root. Then run:
-
-```bash
-python3 predict.py \
-  data/1AHSC/gdca.out \
-  data/1AHSC/plmdca_parsed.out \
-  data/1AHSC/phycmap_parsed.out \
-  data/1AHSC/netsurf.out \
-  data/1AHSC/psipred.ss2 \
-  data/1AHSC/alignment.stats \
-  data/1AHSC/alignment.a3m \
-  /Users/KrishnaMungur_1/Documents/INFO_F439/PconsC3 \
-  0 \
-  results/1AHSC/1AHSC_output
-  
-  Replace the following argument with the absolute path to your local copy of the PconsC3 project:
-    /Users/KrishnaMungur_1/Documents/INFO_F439/PconsC3
-  
-This should point to the root directory containing the source code, `predict.py`, and the `.hdf5` files.
-
-Alternatively, if you are already in the root of the project, you can use a relative path like `.` instead.
-
+```
 
 # Parallel version and HDF5 support (recommended, even for non-parallel usage)
 
 The parallel version with HDF5 support drastically reduces IO and computation time, while not changing the output in any way. To set it up make sure h5py and Cython are in your PYTHONPATH. You can install the packages via pip:
+
 ```
 pip install h5py
 pip install Cython
 ```
+
 Then you need to convert the forest data in your PconsC3 root directory into HDF5-files:
+
 ```
 cd <PconsC3 root directory>
 python convert_to_hdf5.py .
 ```
+
 After successful conversion you can safely remove the folders containing the forest data:
+
 ```
 find tlayer* ! -name '*.hdf5' -type d -exec rm -r {} +
 ```
+
 And finally compile the Cython script:
+
 ```
 python setup.py build_ext -i
 ```
+
 After that you can run the fast version of PconsC3:
+
 ```
 ./predict-parallel-hdf5.py myprotein.gdca myprotein.0.02.plm20 external.RR netsurf.rsa psipred.ss2 myprotein.stats myprotein.fas outputfile [NumberThreads]
 ```
 
-
-
 # Making PconsC3 run faster
 
 There are a few parameters in `./predict.py` that can be tweaked, notably:
- * `maxtime` -- the maximum time in seconds spent on a single prediction layer (total prediction time will be at most 6x maxtime + time spent on i/o). For the larger proteins setting maxtime too low may result in sub-par performance
- * `treefraction` -- the fraction of trees to be used. While we recommend leaving `treefraction` set to 1., benchmarks have demonstrated satisfactory performance at values as low as `0.3` and for proteins with a lot of sequence information, as low as `0.1`. 
+
+* `maxtime` -- the maximum time in seconds spent on a single prediction layer (total prediction time will be at most 6x maxtime + time spent on i/o). For the larger proteins setting maxtime too low may result in sub-par performance
+* `treefraction` -- the fraction of trees to be used. While we recommend leaving `treefraction` set to 1., benchmarks have demonstrated satisfactory performance at values as low as `0.3` and for proteins with a lot of sequence information, as low as `0.1`.
 
 # Help and Support
 
-If you run into any problems with the software or observe it performing poorer than expected, we would appreciate an email to Marcin J. Skwark (firstname@lastname.pl or firstname.middleinitial.lastname@vanderbilt.edu).
+If you run into any problems with the software or observe it performing poorer than expected, we would appreciate an email to Marcin J. Skwark ([firstname@lastname.pl](mailto:firstname@lastname.pl) or [firstname.middleinitial.lastname@vanderbilt.edu](mailto:firstname.middleinitial.lastname@vanderbilt.edu)).
