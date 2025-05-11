@@ -1,5 +1,4 @@
 from __future__ import print_function, division, absolute_import
-#!/usr/bin/env python2.7
 import os
 import sys
 import time
