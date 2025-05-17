@@ -9,7 +9,7 @@ RUN apt update && apt install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Installer les modules Python nécessaires
-RUN pip install --no-cache-dir -U pip cython numpy joblib h5py
+RUN pip install --no-cache-dir -U pip cython numpy joblib==0.9.4 h5py
 
 # Créer et copier l'app
 WORKDIR /app
