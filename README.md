@@ -46,6 +46,15 @@ alignment.a3m
 ```
 
 ---
+## 📁 Access to Required Model Files
+
+Due to GitHub file size limitations, the `.hdf5` files and tree models used by PconsC3 are hosted externally.
+
+👉 [📁 Access PconsC3 model files on Google Drive](https://drive.google.com/drive/folders/1tarnHJf_epacU8_8ZJTnKnlwXqi0MNm7?usp=share_link)
+
+After downloading:
+- Place the `.hdf5` files in the root of the project
+- These replace the need for the original `tforest0` to `tforest5` folders
 
 ## ▶️ Running PconsC3
 
