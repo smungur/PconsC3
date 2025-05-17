@@ -194,7 +194,7 @@ for index in range(3):
         if d.find('gdca') > -1:
             x = m.split()
             c = 2
-        elif d.find('.plm') > -1:
+        elif d.find('plm') > -1:
             x = m.split(',')
             if len(x) != 3:
                 raise IOError(d + ' has wrong format!')

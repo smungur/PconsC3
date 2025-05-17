@@ -1,4 +1,3 @@
-#!/usr/bin/env python2.7
 import os
 import sys
 import time
@@ -176,7 +175,7 @@ for index in range(3):
         if d.find('gdca') > -1:
             x = m.split()
             c = 2
-        elif d.find('.plm') > -1:
+        elif d.find('plm') > -1:
             x = m.split(',')
             if len(x) != 3:
                 raise IOError(d + ' has wrong format!')
@@ -229,6 +228,13 @@ maxscores = []
 meantop = []
 stdtop = []
 for index in range(3):
+    if not contacts[index]:
+        print(f"⚠️ Warning: contacts[{index}] is empty — skipping.")
+        maxscores.append(0)
+        meantop.append(0)
+        stdtop.append(0)
+        continue
+
     maxscores.append(max(contacts[index].values()))
     q = []
     for s in list(selected2):

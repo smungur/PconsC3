@@ -9,7 +9,7 @@ import numpy as np
 # maximum time per layer
 maxtime = pow(10,6)
 
-# fraction of trees to use (prediction time scales linearly with the number of trees, 
+# fraction of trees to use (prediction time scales linearly with the number of trees,
 # while expected precision is roughly the same for values > 0.3
 
 treedepth = 100
@@ -191,7 +191,7 @@ for index in range(3):
         if d.find('gdca') > -1:
             x = m.split()
             c = 2
-        elif d.find('.plm') > -1:
+        elif d.find('plm') > -1:
             x = m.split(',')
             if len(x) != 3:
                 print(d + ' has wrong format!')
@@ -209,7 +209,7 @@ for index in range(3):
         if aa1 > maxres:
             maxres = aa1
         if aa2 > maxres:
-            maxres = aa2    
+            maxres = aa2
         if x[c].find('nan') > -1:
             score = -3
         else:
@@ -380,7 +380,7 @@ def predict_tree(tree, q):
 sys.stderr.write('\nPredicting base layer:\n')
 p = predict(forestlocation.format(0), X)
 of = open(outfile + '.l0', 'w')
-previouslayer = {} 
+previouslayer = {}
 
 for t in range(len(p)):
     of.write('{:d} {:d} {:7.5f}\n'.format(selected[t][0], selected[t][1], p[t]))
@@ -403,7 +403,7 @@ for layer in range(1,6):
             for j in range(-5,6):
                 try:
                     q.append(previouslayer[y[0]+i][y[1] + j])
-                except:     
+                except:
                     q.append(-3)
         X.append(q)
 
