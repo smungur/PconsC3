@@ -1,27 +1,25 @@
-#!/usr/bin/env python
+import os
+#pip install gdown
 
-import urllib2
+# Replace these with your actual file IDs from Google Drive
+files = {
+    "tlayer0.zip": "15JsnIvxwSQPdGfw9sxRwRnRIXytq5_1K",
+    "tlayer1.zip": "1PRcyOKirDsRoBDqJY6slEaL9i9cFQxbP",
+    "tlayer2.zip": "1I3AWhOZ7QXoD4rOyV9B9kKTE0gWTstDi",
+    "tlayer3.zip": "1bDdM2o8rGK5vXDuNuKFkJj1WiFW1doNY",
+    "tlayer4.zip": "1OLAx1Ffl1pyQDpAreX4h5Buh71tM3hTO",
+    "tlayer5.zip": "1TCcq0EV3T0hRzdI0PXEJ0rvS54IlI2Z-",
+}
 
-url = "http://:q
 
-file_name = url.split('/')[-1]
-u = urllib2.urlopen(url)
-f = open(file_name, 'wb')
-meta = u.info()
-file_size = int(meta.getheaders("Content-Length")[0])
-print "Downloading: %s Bytes: %s" % (file_name, file_size)
+def download_from_drive(file_name, file_id):
+    print(f"⬇️  Downloading {file_name}...")
+    os.system(f"gdown --id {file_id} -O {file_name}")
+    print(f"📦 Unzipping {file_name}...")
+    os.system(f"unzip -o {file_name}")
+    print(f"✅ {file_name} ready.\n")
 
-file_size_dl = 0
-block_sz = 8192
-while True:
-    buffer = u.read(block_sz)
-    if not buffer:
-        break
 
-    file_size_dl += len(buffer)
-    f.write(buffer)
-    status = r"%10d  [%3.2f%%]" % (file_size_dl, file_size_dl * 100. / file_size)
-    status = status + chr(8)*(len(status)+1)
-    print status,
-
-f.close()
+if __name__ == "__main__":
+    for name, file_id in files.items():
+        download_from_drive(name, file_id)
