@@ -1,4 +1,3 @@
-#!/usr/bin/env python2.7
 import os
 import sys
 import time
@@ -11,7 +10,7 @@ import joblib
 
 import _predict_parallel
 
-# fraction of trees to use (prediction time scales linearly with the number of trees, 
+# fraction of trees to use (prediction time scales linearly with the number of trees,
 # while expected precision is roughly the same for values > 0.3
 treedepth = 100
 treefraction = 1
@@ -39,7 +38,7 @@ if int(maxdepth) <= 0:
 else:
     forestlocation = args.ForestLocations + '/tlayer{:d}-' + str(maxdepth)
 
-for i in xrange(5):
+for i in range(5):
     if not os.path.exists(forestlocation.format(i) + '/tree.list'.format(i)):
         sys.stderr.write(forestlocation.format(i) + '/tree.list'.format(i))
         raise IOError('Forest data for layer {:d} is missing.\n'.format(i))
@@ -85,7 +84,7 @@ def parsePSSM(alignment):
     bi = [0.0825, 0.0553, 0.0406, 0.0545, 0.0137, 0.0393, 0.0675, 0.0707, 0.0227, 0.0595, 0.0966, 0.0584, 0.0242, 0.0386, 0.0470, 0.0657, 0.0534, 0.0108, 0.0292, 0.0687]
     b = {}
     for i in one2number[:-1]:
-        b[i] = bi[one2number.find(i)] 
+        b[i] = bi[one2number.find(i)]
     freqs = {}
     seqcount = 0.
     gapcount = 0
@@ -98,15 +97,15 @@ def parsePSSM(alignment):
             continue
         seqcount += 1
         coverage.append( (len(x) - x.count('-'))/float(len(x)))
-        for i in xrange(len(x)):
+        for i in range(len(x)):
             try:
-                freqs[i][x[i]] += 1 
+                freqs[i][x[i]] += 1
             except:
                 try:
-                    freqs[i][x[i]] = 1 
+                    freqs[i][x[i]] = 1
                 except:
-                    freqs[i] = {} 
-                    freqs[i][x[i]] = 1 
+                    freqs[i] = {}
+                    freqs[i][x[i]] = 1
             if x[i] == '-':
                 gapcount += 1
     b['-'] = gapcount/(seqcount * len(freqs.keys()))
@@ -119,7 +118,10 @@ def parsePSSM(alignment):
                 q.append(freqs[i][l] / (b[l] * seqcount) * np.log(freqs[i][l] / (b[l] * seqcount)))
                 entropy.append(freqs[i][l] / (b[l] * seqcount) * np.log(freqs[i][l] / (b[l] * seqcount)))
             except:
-                q.append(np.log(0.1 / (b[l] * seqcount)))
+                try:
+                    q.append(np.log(freqs[i][l] / (b[l] * seqcount)))
+                except (KeyError, ZeroDivisionError):
+                    q.append(0.0)
                 q.append(0)
                 entropy.append(0)
         pssm[i+1] = q
@@ -161,7 +163,7 @@ pssm = pssm[0]
 
 selected = set()
 cmap_preds = (args.GaussDCA, args.plmDCA, args.MLContactPrediction)
-for index in xrange(3):
+for index in range(3):
     contacts[index] = {}
     d = cmap_preds[index]
     r = []
@@ -173,7 +175,7 @@ for index in xrange(3):
         if d.find('gdca') > -1:
             x = m.split()
             c = 2
-        elif d.find('.plm') > -1:
+        elif d.find('plm') > -1:
             x = m.split(',')
             if len(x) != 3:
                 raise IOError(d + ' has wrong format!')
@@ -189,7 +191,7 @@ for index in xrange(3):
         if aa1 > maxres:
             maxres = aa1
         if aa2 > maxres:
-            maxres = aa2    
+            maxres = aa2
         if x[c].find('nan') > -1:
             score = -3
         else:
@@ -225,16 +227,35 @@ for i in contacts.keys():
 maxscores = []
 meantop = []
 stdtop = []
-for index in xrange(3):
-    maxscores.append(max(contacts[index].values()))
+
+for index in range(3):
+    if index not in contacts or not contacts[index]:
+        print(f"⚠️ Warning: contacts[{index}] is empty — skipping.")
+        maxscores.append(0)
+        meantop.append(0)
+        stdtop.append(0)
+        continue
+
+    try:
+        maxscores.append(max(contacts[index].values()))
+    except ValueError:
+        print(f"⚠️ max() failed at contacts[{index}] — filling with 0")
+        maxscores.append(0)
+
     q = []
     for s in list(selected2):
         try:
             q.append(contacts[index][s])
-        except:
+        except KeyError:
             pass
-    meantop.append(np.mean(q))
-    stdtop.append(np.std(q))
+
+    if q:
+        meantop.append(np.mean(q))
+        stdtop.append(np.std(q))
+    else:
+        meantop.append(0)
+        stdtop.append(0)
+
 
 selected = list(selected)
 selected.sort()
@@ -261,9 +282,9 @@ for s in selected:
     q.append(maxscores[1])
     q.append(maxscores[2])
 
-    for i in xrange(-5, 6):
-        for j in xrange(-5, 6):
-            for index in xrange(3):
+    for i in range(-5, 6):
+        for j in range(-5, 6):
+            for index in range(3):
                 try:
                     q.append(contacts[index][(s[0]+i, s[1]+j)])
                     q.append((contacts[index][(s[0]+i, s[1]+j)] - meantop[index])/stdtop[index])
@@ -271,25 +292,25 @@ for s in selected:
                     q.append(0)
                     q.append(0)
 
-        for i in xrange(-4, 5):
+        for i in range(-4, 5):
                 try:
                         q.extend(SSdict[s[0]+i])
                 except:
                         q.extend((0, 0, 0))
 
-        for i in xrange(-4, 5):
+        for i in range(-4, 5):
                 try:
                         q.extend(SSdict[s[1]+i])
                 except:
                         q.extend((0, 0, 0))
     
-    for i in xrange(-4, 5):
+    for i in range(-4, 5):
         try:
             q.extend(accessibility[s[0] + i])
         except:
             q.extend((0, 0, 0, 0, 0))
     
-    for i in xrange(-4, 5):
+    for i in range(-4, 5):
         try:
             q.extend(accessibility[s[1]+i])
         except:
@@ -342,7 +363,7 @@ def predict(dir, X_pred):
     del leafs, trunks, compares
 
     _predict_parallel.predict(trunks_, leafs_, compares_, X_pred, predictions, num_threads=num_threads)
-    print predictions
+    print(predictions)
     return predictions
 
 # first layer
@@ -351,7 +372,7 @@ p = predict(forestlocation.format(0), X)
 previouslayer = {}
 
 with open(outfile + '.l0', 'w') as of:
-    for t in xrange(len(p)):
+    for t in range(len(p)):
         of.write('{:d} {:d} {:7.5f}\n'.format(selected[t][0], selected[t][1], p[t]))
         try:
             previouslayer[selected[t][0]][selected[t][1]] = p[t]
@@ -362,14 +383,14 @@ with open(outfile + '.l0', 'w') as of:
 
 Xp = X
 Yp = selected
-for layer in xrange(1, 6):
+for layer in range(1, 6):
     X = []
     sys.stderr.write('\nPredicting convolution layer {:d}:\n'.format(layer))
-    for p in xrange(len(Xp)):
+    for p in range(len(Xp)):
         y = Yp[p]
         q = list(Xp[p])
-        for i in xrange(-5, 6):
-            for j in xrange(-5, 6):
+        for i in range(-5, 6):
+            for j in range(-5, 6):
                 try:
                     q.append(previouslayer[y[0] + i][y[1] + j])
                 except:
@@ -380,7 +401,7 @@ for layer in xrange(1, 6):
 
     previouslayer = {}
     with open(outfile + '.l{:d}'.format(layer), 'w') as of:
-        for t in xrange(len(p)):
+        for t in range(len(p)):
             of.write('{:d} {:d} {:7.5f}\n'.format(Yp[t][0], Yp[t][1], p[t]))
             try:
                 previouslayer[Yp[t][0]][Yp[t][1]] = p[t]
