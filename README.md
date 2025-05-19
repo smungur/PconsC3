@@ -52,12 +52,15 @@ Due to GitHub file size limitations, the `.hdf5` files and tree models used by P
 
 👉 [📁 Access PconsC3 model files on Google Drive](https://drive.google.com/drive/folders/1tarnHJf_epacU8_8ZJTnKnlwXqi0MNm7?usp=share_link)
 
-### 📦 Automatic download
+---
 
-To automatically download the tree model files (`tlayer0.zip` to `tlayer5.zip`), use the provided script:
+### 📦 Automatic download of tree models
+
+To automatically download the tree model files (`tlayer0.zip` to `tlayer5.zip`), use the following script:
 
 ```bash
 python3 downloadTrees.py
+
 This script uses `gdown` to fetch and unzip the required model files.
 
 > 🔧 Requirement: Before running the script, install `gdown`:
@@ -65,6 +68,14 @@ This script uses `gdown` to fetch and unzip the required model files.
 > ```bash
 > pip install gdown
 > ```
+```
+
+## 📥 Download Required HDF5 Model Files
+
+To download all `.hdf5` model layers automatically, use:
+
+```bash
+python3 downloadHDF5.py
 
 
 After downloading:
