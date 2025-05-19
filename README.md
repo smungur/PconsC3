@@ -27,7 +27,12 @@ If you use PconsC3 please cite:
   - [🔄 Check for missing predictions](#-check-for-missing-predictions)
   - [⚙️ Important – Set treefraction = 03](#️-important--set-treefraction--03)
   - [✅ Evaluate all results](#-evaluate-all-results)
-
+- # 🗂️ Project Structure and File Usage
+    - 📁 Key Folders
+    -  📄 Prediction Scripts
+    - 📄 Model Download and Preparation
+    - 📄 Batch Processing
+    - 📄 Other Files
 
 # Prerequisites
 
@@ -307,6 +312,54 @@ There are a few parameters in `./predict.py` that can be tweaked, notably:
 
 * `maxtime` -- the maximum time in seconds spent on a single prediction layer (total prediction time will be at most 6x maxtime + time spent on i/o). For the larger proteins setting maxtime too low may result in sub-par performance
 * `treefraction` -- the fraction of trees to be used. While we recommend leaving `treefraction` set to 1., benchmarks have demonstrated satisfactory performance at values as low as `0.3` and for proteins with a lot of sequence information, as low as `0.1`.
+
+# 🗂️ Project Structure and File Usage
+
+This section provides an overview of the main files and folders in the project, and their roles.
+
+## 📁 Key Folders
+
+- `data/`: Contains the input files for the 210 protein domains used in the benchmark dataset.
+- `results/`: Output directory for predictions. For each protein, a subfolder contains the corresponding prediction files.
+- `test/`: Used for testing with a single example protein (`BPT1_BOVIN`) provided by the original authors.
+- `benchmarkset/`: Auxiliary data for benchmarking (usage depends on scripts like `evaluate_all_cases.py`).
+- `extra/arne/MSA/`: Not clearly used; content possibly related to alignment testing or legacy experiments.
+- `phycmap/bin/`: Contains binaries for PhyCMAP; currently unused in the core pipeline but may be part of legacy steps.
+
+---
+
+## 📄 Prediction Scripts
+
+- `predict.py`: Basic prediction script (single-threaded).
+- `predict-parallel.py`: Parallel prediction using the Cython module `_predict_parallel.pyx`.
+- `predict-parallel-hdf5.py`: Parallel + HDF5-based version (also uses `_predict_parallel.pyx`) — most efficient for large proteins.
+
+
+> ⚠️ For large proteins like `1C9YA`, you must set `treefraction = 0.3` in the parallel scripts to avoid memory crashes.
+
+---
+
+## 📄 Model Download and Preparation
+
+- `downloadTrees.py`: Downloads `.zip` tree models (`tlayer0.zip` to `tlayer5.zip`) from Google Drive.
+- `convert_to_hdf5.py`: Converts unzipped tree model folders into `.hdf5` files (requires running inside Docker).
+- `downloadHDF5.py`: 🟢 **Recommended** — downloads ready-to-use `.hdf5` models directly.
+- `download_pdbs_for_all.py`: Downloads `.pdb` files for proteins in `data/` — used for evaluation scripts.
+
+---
+
+## 📄 Batch Processing
+
+- `batch_predict_hdf5.py`: Predicts all proteins sequentially (slow, 3–4h).
+- `batch_1.py`, `batch_2.py`, `batch_3.py`, `batch_4.py`: Run predictions in parallel by prefix (faster, 1–2h total).
+- `launch_missing_predictions.py`: Re-runs predictions for any proteins that failed or are missing output.
+- `evaluate_all_cases.py`: Computes metrics (Precision, Recall, etc.) and outputs them into `results_summary.csv`.
+
+---
+
+### 📄 Other Files
+
+- `reformat_cameo.py`: Script to reformat contact prediction output into CAMEO-compatible format (optional).
 
 # Help and Support
 
