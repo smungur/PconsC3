@@ -1,62 +1,74 @@
 import os
 import subprocess
-import multiprocessing
+import warnings
 
-PREDICT_SCRIPT = "predict-parallel-hdf5.py"
-DATA_DIR = "data"
-RESULTS_DIR = "results"
-FOREST_DIR = "/app"  # ou autre selon ton chemin d'accès dans Docker
+def count_sequences(a3m_path):
+    if not os.path.exists(a3m_path):
+        return 0
+    try:
+        with open(a3m_path) as f:
+            return sum(1 for line in f if line.startswith('>'))
+    except Exception as e:
+        print(f"[ERROR] Cannot count sequences in {a3m_path}: {e}")
+        return 0
 
-#NUM_THREADS = "4"
-# Utiliser tous les cœurs moins 2 (mais minimum 1)
-max_threads = max(1, multiprocessing.cpu_count() - 2)
-NUM_THREADS = str(max_threads)
+# Liste des noms d'identifiants à traiter
+names = [name for name in os.listdir("data") if os.path.isdir(os.path.join("data", name))]
 
-for protein in sorted(os.listdir(DATA_DIR)):
-    folder = os.path.join(DATA_DIR, protein)
-    if not os.path.isdir(folder):
+for name in sorted(names):
+    print(f"[INFO] Processing {name}")
+
+    # Préparation des chemins
+    base_dir = os.path.join("data", name)
+    files = {
+        "gdca": os.path.join(base_dir, "gdca.out"),
+        "plm": os.path.join(base_dir, "plmdca_parsed.out"),
+        "cmap": os.path.join(base_dir, "phycmap_parsed.out"),
+        "netsurf": os.path.join(base_dir, "netsurf.out"),
+        "ss2": os.path.join(base_dir, "psipred.ss2"),
+        "stats": os.path.join(base_dir, "alignment.stats"),
+        "a3m": os.path.join(base_dir, "alignment.a3m")
+    }
+
+    # Vérification des fichiers requis
+    missing = False
+    for key, path in files.items():
+        if not os.path.exists(path):
+            print(f"[MISSING] {name}: {key} file missing at {path}")
+            missing = True
+    if missing:
         continue
 
-    # Construire les chemins complets vers les fichiers requis
-    try:
-        files = {
-            "gdca": os.path.join(folder, "gdca.out"),
-            "plm": os.path.join(folder, "plmdca_parsed.out"),
-            "rr": os.path.join(folder, "phycmap_parsed.out"),
-            "rsa": os.path.join(folder, "netsurf.out"),
-            "ss2": os.path.join(folder, "psipred.ss2"),
-            "stats": os.path.join(folder, "alignment.stats"),
-            "alignment": os.path.join(folder, "alignment.a3m"),
-        }
+    # Vérification du nombre de séquences
+    seq_count = count_sequences(files["a3m"])
+    if seq_count < 10:
+        print(f"[SKIP] {name}: only {seq_count} sequences in alignment")
+        continue
 
-        # Vérifie que tous les fichiers nécessaires sont présents
-        if not all(os.path.isfile(f) for f in files.values()):
-            print(f"[SKIP] Missing files for {protein}")
-            continue
+    # Préparation du dossier de sortie
+    out_dir = os.path.join("results", name)
+    os.makedirs(out_dir, exist_ok=True)
+    output_path = os.path.join(out_dir, f"{name}_output")
 
-        output_dir = os.path.join(RESULTS_DIR, protein)
-        os.makedirs(output_dir, exist_ok=True)
+    # Construction de la commande
+    cmd = [
+        "python3", "predict-parallel-hdf5.py",
+        files["gdca"],
+        files["plm"],
+        files["cmap"],
+        files["netsurf"],
+        files["ss2"],
+        files["stats"],
+        files["a3m"],
+        "/app",  # ou autre répertoire de travail
+        "0",     # ID ? à ajuster si vous avez du parallélisme
+        output_path,
+        "4"      # paramètre final du script (index ou worker ?)
+    ]
 
-        output_file = os.path.join(output_dir, f"{protein}_output.hdf5")
-
-        cmd = [
-            "python3", PREDICT_SCRIPT,
-            files["gdca"],
-            files["plm"],
-            files["rr"],
-            files["rsa"],
-            files["ss2"],
-            files["stats"],
-            files["alignment"],
-            FOREST_DIR,
-            "0",
-            output_file,
-            NUM_THREADS
-        ]
-
-        print(f"[RUNNING] {protein}")
-        subprocess.run(cmd, check=True)
-
-    except Exception as e:
-        print(f"[ERROR] {protein}: {e}")
-
+    # Exécution
+    ret = subprocess.call(cmd)
+    if ret != 0:
+        print(f"[ERROR] {name}: prediction script failed with code {ret}")
+    else:
+        print(f"[OK] {name}: prediction completed")
