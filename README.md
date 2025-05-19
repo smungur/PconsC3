@@ -184,7 +184,7 @@ python3 predict.py \
   results/1AHSC/1AHSC_output
 ```
 
-Voici des exemples d'utilisation de predict-parallel et predict-parallel-hdf5 où 4 est le nombre de thread.
+Here are examples of using predict-parallel and predict-parallel-hdf5 where 4 is the number of threads.
 ```bash
 python3 predict-parallel.py \
   data/1AHSC/gdca.out \
