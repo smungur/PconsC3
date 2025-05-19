@@ -1,0 +1,67 @@
+# For publication of results, please cite:
+# ...
+# ... Michael Schantz Klausen, Martin Closter Jespersen, Henrik Nielsen, Kamilla Kjærgaard Jensen, 
+# ... Vanessa Isabell Jurtz, Casper Kaae Sønderby, Morten Otto Alexander Sommer, Ole Winther, 
+# ... Morten Nielsen, Bent Petersen, and Paolo Marcatili. 
+# ... NetSurfP-2.0: Improved prediction of protein structural features by integrated deep learning.
+# ... Proteins: Structure, Function, and Bioinformatics (Feb. 2019).
+# ... https://doi.org/10.1002/prot.25674
+# ...
+#
+# Column 1: Class assignment - B for buried or E for Exposed - Threshold: 25% exposure, but not based on RSA
+# Column 2: Amino acid
+# Column 3: Sequence name
+# Column 4: Amino acid number
+# Column 5: Relative Surface Accessibility - RSA
+# Column 6: Absolute Surface Accessibility
+# Column 7: Not used
+# Column 8: Probability for Alpha-Helix
+# Column 9: Probability for Beta-strand
+# Column 10: Probability for Coil
+E K  1GPSA                  1    0.749 154.148   0.000   0.000   0.011   0.989
+E I  1GPSA                  2    0.469  86.783   0.000   0.005   0.648   0.347
+B C  1GPSA                  3    0.116  16.229   0.000   0.023   0.398   0.579
+E R  1GPSA                  4    0.616 141.103   0.000   0.025   0.128   0.846
+E R  1GPSA                  5    0.636 145.749   0.000   0.024   0.267   0.709
+E R  1GPSA                  6    0.526 120.372   0.000   0.054   0.518   0.429
+B S  1GPSA                  7    0.174  20.439   0.000   0.024   0.146   0.830
+E A  1GPSA                  8    0.746  82.167   0.000   0.007   0.011   0.982
+E G  1GPSA                  9    0.493  38.826   0.000   0.009   0.047   0.943
+B F  1GPSA                 10    0.223  44.677   0.000   0.004   0.336   0.660
+E K  1GPSA                 11    0.705 145.002   0.000   0.001   0.494   0.504
+E G  1GPSA                 12    0.285  22.412   0.000   0.019   0.296   0.686
+E P  1GPSA                 13    0.356  50.523   0.000   0.104   0.481   0.416
+B C  1GPSA                 14    0.075  10.466   0.000   0.081   0.330   0.588
+E M  1GPSA                 15    0.252  50.366   0.000   0.063   0.287   0.650
+E S  1GPSA                 16    0.519  60.823   0.000   0.036   0.070   0.894
+E N  1GPSA                 17    0.470  68.847   0.000   0.218   0.010   0.772
+E K  1GPSA                 18    0.712 146.360   0.000   0.837   0.002   0.160
+E N  1GPSA                 19    0.454  66.437   0.000   0.877   0.004   0.119
+B C  1GPSA                 20    0.029   4.005   0.000   0.979   0.001   0.020
+B A  1GPSA                 21    0.190  20.894   0.000   0.995   0.000   0.005
+E Q  1GPSA                 22    0.598 106.771   0.000   0.997   0.000   0.003
+B V  1GPSA                 23    0.157  24.082   0.000   0.998   0.000   0.002
+B C  1GPSA                 24    0.014   2.030   0.000   0.997   0.000   0.003
+E Q  1GPSA                 25    0.569 101.614   0.000   0.988   0.000   0.011
+E Q  1GPSA                 26    0.782 139.694   0.000   0.962   0.000   0.038
+E E  1GPSA                 27    0.389  67.961   0.000   0.332   0.000   0.667
+E G  1GPSA                 28    0.687  54.093   0.000   0.004   0.000   0.996
+B W  1GPSA                 29    0.189  45.557   0.000   0.013   0.017   0.970
+E G  1GPSA                 30    0.533  41.968   0.000   0.016   0.061   0.923
+E G  1GPSA                 31    0.409  32.162   0.000   0.030   0.284   0.686
+B G  1GPSA                 32    0.174  13.656   0.000   0.010   0.664   0.327
+E N  1GPSA                 33    0.571  83.548   0.000   0.002   0.923   0.075
+B C  1GPSA                 34    0.155  21.725   0.000   0.003   0.863   0.133
+E D  1GPSA                 35    0.599  86.347   0.000   0.002   0.769   0.229
+E G  1GPSA                 36    0.427  33.603   0.000   0.067   0.168   0.765
+E P  1GPSA                 37    0.560  79.483   0.000   0.140   0.070   0.790
+E F  1GPSA                 38    0.516 103.535   0.000   0.120   0.135   0.745
+E R  1GPSA                 39    0.396  90.694   0.000   0.073   0.317   0.611
+E R  1GPSA                 40    0.406  92.943   0.000   0.016   0.718   0.266
+B C  1GPSA                 41    0.052   7.312   0.000   0.003   0.931   0.066
+E K  1GPSA                 42    0.305  62.720   0.000   0.003   0.935   0.062
+B C  1GPSA                 43    0.079  11.069   0.000   0.002   0.966   0.032
+E I  1GPSA                 44    0.284  52.557   0.000   0.003   0.940   0.057
+E R  1GPSA                 45    0.431  98.752   0.000   0.001   0.760   0.239
+E Q  1GPSA                 46    0.775 138.410   0.000   0.001   0.563   0.436
+E C  1GPSA                 47    0.713 100.078   0.000   0.000   0.001   0.999

@@ -1,0 +1,55 @@
+# For publication of results, please cite:
+# ...
+# ... Michael Schantz Klausen, Martin Closter Jespersen, Henrik Nielsen, Kamilla Kjærgaard Jensen, 
+# ... Vanessa Isabell Jurtz, Casper Kaae Sønderby, Morten Otto Alexander Sommer, Ole Winther, 
+# ... Morten Nielsen, Bent Petersen, and Paolo Marcatili. 
+# ... NetSurfP-2.0: Improved prediction of protein structural features by integrated deep learning.
+# ... Proteins: Structure, Function, and Bioinformatics (Feb. 2019).
+# ... https://doi.org/10.1002/prot.25674
+# ...
+#
+# Column 1: Class assignment - B for buried or E for Exposed - Threshold: 25% exposure, but not based on RSA
+# Column 2: Amino acid
+# Column 3: Sequence name
+# Column 4: Amino acid number
+# Column 5: Relative Surface Accessibility - RSA
+# Column 6: Absolute Surface Accessibility
+# Column 7: Not used
+# Column 8: Probability for Alpha-Helix
+# Column 9: Probability for Beta-strand
+# Column 10: Probability for Coil
+E E  1MB6A                  1    0.843 147.313   0.000   0.049   0.000   0.950
+B C  1MB6A                  2    0.229  32.108   0.000   0.282   0.006   0.712
+E L  1MB6A                  3    0.446  81.699   0.000   0.588   0.132   0.280
+E E  1MB6A                  4    0.602 105.153   0.000   0.627   0.167   0.206
+E I  1MB6A                  5    0.381  70.428   0.000   0.648   0.190   0.162
+E F  1MB6A                  6    0.321  64.414   0.000   0.558   0.234   0.207
+E K  1MB6A                  7    0.547 112.518   0.000   0.376   0.262   0.362
+E A  1MB6A                  8    0.513  56.528   0.000   0.362   0.186   0.452
+B C  1MB6A                  9    0.194  27.254   0.000   0.195   0.130   0.675
+E N  1MB6A                 10    0.461  67.437   0.000   0.005   0.024   0.971
+E P  1MB6A                 11    0.600  85.147   0.000   0.018   0.003   0.979
+E S  1MB6A                 12    0.867 101.605   0.000   0.021   0.001   0.978
+E N  1MB6A                 13    0.434  63.597   0.000   0.040   0.014   0.947
+E D  1MB6A                 14    0.716 103.218   0.000   0.278   0.012   0.711
+E Q  1MB6A                 15    0.618 110.437   0.000   0.512   0.042   0.446
+B C  1MB6A                 16    0.077  10.749   0.000   0.542   0.124   0.334
+B C  1MB6A                 17    0.105  14.689   0.000   0.402   0.170   0.428
+E K  1MB6A                 18    0.680 139.794   0.000   0.632   0.012   0.356
+E S  1MB6A                 19    0.758  88.878   0.000   0.532   0.015   0.453
+E S  1MB6A                 20    0.353  41.391   0.000   0.252   0.008   0.740
+E K  1MB6A                 21    0.718 147.704   0.000   0.020   0.019   0.961
+B L  1MB6A                 22    0.185  33.814   0.000   0.017   0.303   0.679
+E V  1MB6A                 23    0.433  66.482   0.000   0.002   0.741   0.258
+B C  1MB6A                 24    0.129  18.059   0.000   0.003   0.794   0.203
+E S  1MB6A                 25    0.314  36.811   0.000   0.005   0.448   0.548
+E R  1MB6A                 26    0.706 161.711   0.000   0.049   0.025   0.926
+E K  1MB6A                 27    0.749 154.108   0.000   0.045   0.011   0.944
+E T  1MB6A                 28    0.311  43.146   0.000   0.049   0.048   0.903
+E R  1MB6A                 29    0.542 124.188   0.000   0.018   0.029   0.953
+E W  1MB6A                 30    0.289  69.400   0.000   0.014   0.684   0.301
+B C  1MB6A                 31    0.055   7.748   0.000   0.007   0.930   0.064
+E K  1MB6A                 32    0.386  79.319   0.000   0.003   0.899   0.098
+E Y  1MB6A                 33    0.276  58.917   0.000   0.002   0.883   0.115
+E Q  1MB6A                 34    0.652 116.409   0.000   0.001   0.664   0.335
+E I  1MB6A                 35    0.643 118.875   0.000   0.001   0.003   0.996

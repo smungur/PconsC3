@@ -1,0 +1,70 @@
+# For publication of results, please cite:
+# ...
+# ... Michael Schantz Klausen, Martin Closter Jespersen, Henrik Nielsen, Kamilla Kjærgaard Jensen, 
+# ... Vanessa Isabell Jurtz, Casper Kaae Sønderby, Morten Otto Alexander Sommer, Ole Winther, 
+# ... Morten Nielsen, Bent Petersen, and Paolo Marcatili. 
+# ... NetSurfP-2.0: Improved prediction of protein structural features by integrated deep learning.
+# ... Proteins: Structure, Function, and Bioinformatics (Feb. 2019).
+# ... https://doi.org/10.1002/prot.25674
+# ...
+#
+# Column 1: Class assignment - B for buried or E for Exposed - Threshold: 25% exposure, but not based on RSA
+# Column 2: Amino acid
+# Column 3: Sequence name
+# Column 4: Amino acid number
+# Column 5: Relative Surface Accessibility - RSA
+# Column 6: Absolute Surface Accessibility
+# Column 7: Not used
+# Column 8: Probability for Alpha-Helix
+# Column 9: Probability for Beta-strand
+# Column 10: Probability for Coil
+E G  2BWEL                  1    0.966  75.986   0.000   0.000   0.000   1.000
+E I  2BWEL                  2    0.804 148.657   0.000   0.006   0.010   0.984
+E L  2BWEL                  3    0.587 107.514   0.000   0.007   0.005   0.988
+E D  2BWEL                  4    0.597  85.981   0.000   0.014   0.001   0.986
+E P  2BWEL                  5    0.384  54.543   0.000   0.931   0.000   0.068
+E E  2BWEL                  6    0.584 102.081   0.000   0.956   0.000   0.043
+E E  2BWEL                  7    0.586 102.420   0.000   0.969   0.000   0.031
+E R  2BWEL                  8    0.436  99.933   0.000   0.971   0.000   0.028
+E Y  2BWEL                  9    0.297  63.472   0.000   0.958   0.000   0.041
+E E  2BWEL                 10    0.531  92.723   0.000   0.988   0.000   0.012
+E H  2BWEL                 11    0.551 100.171   0.000   0.993   0.000   0.007
+E Q  2BWEL                 12    0.308  55.056   0.000   0.996   0.000   0.004
+B L  2BWEL                 13    0.227  41.548   0.000   0.997   0.000   0.003
+E R  2BWEL                 14    0.544 124.675   0.000   0.998   0.000   0.002
+E Q  2BWEL                 15    0.504  89.951   0.000   0.996   0.000   0.004
+B L  2BWEL                 16    0.139  25.503   0.000   0.996   0.000   0.004
+E N  2BWEL                 17    0.482  70.587   0.000   0.985   0.000   0.015
+E D  2BWEL                 18    0.790 113.780   0.000   0.913   0.000   0.087
+E M  2BWEL                 19    0.366  73.179   0.000   0.291   0.000   0.709
+E G  2BWEL                 20    0.531  41.828   0.000   0.007   0.000   0.992
+B F  2BWEL                 21    0.243  48.759   0.000   0.006   0.005   0.989
+E F  2BWEL                 22    0.712 142.910   0.000   0.004   0.000   0.995
+E D  2BWEL                 23    0.560  80.634   0.000   0.008   0.000   0.992
+E F  2BWEL                 24    0.458  91.845   0.000   0.972   0.000   0.028
+E D  2BWEL                 25    0.763 109.991   0.000   0.993   0.000   0.007
+E R  2BWEL                 26    0.439 100.639   0.000   0.996   0.000   0.004
+B N  2BWEL                 27    0.051   7.421   0.000   0.999   0.000   0.001
+B V  2BWEL                 28    0.233  35.853   0.000   0.999   0.000   0.001
+E A  2BWEL                 29    0.338  37.246   0.000   1.000   0.000   0.000
+B A  2BWEL                 30    0.052   5.744   0.000   1.000   0.000   0.000
+B L  2BWEL                 31    0.095  17.420   0.000   0.999   0.000   0.001
+E R  2BWEL                 32    0.674 154.459   0.000   0.993   0.000   0.007
+E R  2BWEL                 33    0.627 143.693   0.000   0.960   0.000   0.040
+E S  2BWEL                 34    0.257  30.072   0.000   0.373   0.000   0.626
+E G  2BWEL                 35    0.775  60.986   0.000   0.005   0.000   0.995
+E G  2BWEL                 36    0.384  30.196   0.000   0.021   0.001   0.978
+E S  2BWEL                 37    0.464  54.335   0.000   0.009   0.006   0.986
+E V  2BWEL                 38    0.292  44.911   0.000   0.966   0.000   0.034
+E Q  2BWEL                 39    0.689 123.003   0.000   0.989   0.000   0.010
+B G  2BWEL                 40    0.241  18.982   0.000   0.996   0.000   0.004
+B A  2BWEL                 41    0.059   6.510   0.000   0.997   0.000   0.003
+B L  2BWEL                 42    0.151  27.607   0.000   0.997   0.000   0.002
+E D  2BWEL                 43    0.589  84.886   0.000   0.994   0.000   0.006
+E S  2BWEL                 44    0.344  40.280   0.000   0.992   0.000   0.008
+B L  2BWEL                 45    0.239  43.847   0.000   0.972   0.000   0.028
+E L  2BWEL                 46    0.488  89.286   0.000   0.807   0.001   0.192
+E N  2BWEL                 47    0.797 116.692   0.000   0.259   0.001   0.740
+E G  2BWEL                 48    0.696  54.748   0.000   0.019   0.001   0.981
+E D  2BWEL                 49    0.789 113.666   0.000   0.008   0.004   0.988
+E V  2BWEL                 50    0.797 122.556   0.000   0.000   0.000   1.000
