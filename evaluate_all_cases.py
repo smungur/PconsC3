@@ -56,7 +56,7 @@ for protein_id in os.listdir(DATA_DIR):
     data_path = os.path.join(DATA_DIR, protein_id)
     result_path = os.path.join(RESULTS_DIR, protein_id)
     pdb_file = os.path.join(data_path, protein_id[:4].lower() + ".pdb")
-    l5_file = os.path.join(result_path, protein_id + "_output.hdf5.l5")
+    l5_file = os.path.join(result_path, protein_id + "_output.l5")
 
     if not os.path.exists(pdb_file) or not os.path.exists(l5_file):
         print(f"⏭️ Skipping {protein_id} (missing files)")
