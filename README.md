@@ -321,10 +321,7 @@ This section provides an overview of the main files and folders in the project, 
 
 - `data/`: Contains the input files for the 210 protein domains used in the benchmark dataset.
 - `results/`: Output directory for predictions. For each protein, a subfolder contains the corresponding prediction files.
-- `test/`: Used for testing with a single example protein (`BPT1_BOVIN`) provided by the original authors.
 - `benchmarkset/`: Auxiliary data for benchmarking (usage depends on scripts like `evaluate_all_cases.py`).
-- `extra/arne/MSA/`: Not clearly used; content possibly related to alignment testing or legacy experiments.
-- `phycmap/bin/`: Contains binaries for PhyCMAP; currently unused in the core pipeline but may be part of legacy steps.
 
 ---
 
