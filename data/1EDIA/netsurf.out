@@ -1,0 +1,76 @@
+# For publication of results, please cite:
+# ...
+# ... Michael Schantz Klausen, Martin Closter Jespersen, Henrik Nielsen, Kamilla Kjærgaard Jensen, 
+# ... Vanessa Isabell Jurtz, Casper Kaae Sønderby, Morten Otto Alexander Sommer, Ole Winther, 
+# ... Morten Nielsen, Bent Petersen, and Paolo Marcatili. 
+# ... NetSurfP-2.0: Improved prediction of protein structural features by integrated deep learning.
+# ... Proteins: Structure, Function, and Bioinformatics (Feb. 2019).
+# ... https://doi.org/10.1002/prot.25674
+# ...
+#
+# Column 1: Class assignment - B for buried or E for Exposed - Threshold: 25% exposure, but not based on RSA
+# Column 2: Amino acid
+# Column 3: Sequence name
+# Column 4: Amino acid number
+# Column 5: Relative Surface Accessibility - RSA
+# Column 6: Absolute Surface Accessibility
+# Column 7: Not used
+# Column 8: Probability for Alpha-Helix
+# Column 9: Probability for Beta-strand
+# Column 10: Probability for Coil
+E A  1EDIA                  1    0.923 101.732   0.000   0.004   0.000   0.996
+E Q  1EDIA                  2    0.803 143.391   0.000   0.164   0.005   0.831
+E H  1EDIA                  3    0.529  96.227   0.000   0.069   0.002   0.929
+E D  1EDIA                  4    0.622  89.558   0.000   0.224   0.002   0.774
+E E  1EDIA                  5    0.671 117.223   0.000   0.975   0.000   0.025
+E A  1EDIA                  6    0.459  50.570   0.000   0.988   0.000   0.012
+E Q  1EDIA                  7    0.301  53.670   0.000   0.993   0.000   0.007
+E Q  1EDIA                  8    0.340  60.725   0.000   0.995   0.000   0.005
+E N  1EDIA                  9    0.515  75.393   0.000   0.994   0.000   0.006
+B A  1EDIA                 10    0.205  22.644   0.000   0.996   0.000   0.004
+E F  1EDIA                 11    0.261  52.357   0.000   0.997   0.000   0.003
+E Y  1EDIA                 12    0.438  93.698   0.000   0.998   0.000   0.002
+E Q  1EDIA                 13    0.556  99.219   0.000   0.995   0.000   0.005
+E V  1EDIA                 14    0.272  41.768   0.000   0.989   0.000   0.011
+E L  1EDIA                 15    0.278  50.847   0.000   0.756   0.000   0.244
+E N  1EDIA                 16    0.708 103.671   0.000   0.173   0.000   0.827
+B M  1EDIA                 17    0.181  36.160   0.000   0.005   0.000   0.995
+E P  1EDIA                 18    0.727 103.116   0.000   0.012   0.000   0.988
+E N  1EDIA                 19    0.836 122.333   0.000   0.015   0.000   0.985
+B L  1EDIA                 20    0.148  27.114   0.000   0.006   0.003   0.991
+E N  1EDIA                 21    0.585  85.619   0.000   0.002   0.000   0.998
+E A  1EDIA                 22    0.689  75.888   0.000   0.985   0.000   0.015
+E D  1EDIA                 23    0.820 118.165   0.000   0.988   0.000   0.012
+E Q  1EDIA                 24    0.468  83.639   0.000   0.992   0.000   0.008
+E R  1EDIA                 25    0.287  65.739   0.000   0.994   0.000   0.006
+E N  1EDIA                 26    0.534  78.126   0.000   0.992   0.000   0.008
+E G  1EDIA                 27    0.370  29.083   0.000   0.995   0.000   0.005
+B F  1EDIA                 28    0.244  49.010   0.000   0.998   0.000   0.002
+B I  1EDIA                 29    0.173  31.984   0.000   0.996   0.000   0.003
+E Q  1EDIA                 30    0.559  99.800   0.000   0.993   0.000   0.007
+E S  1EDIA                 31    0.431  50.507   0.000   0.979   0.000   0.021
+B L  1EDIA                 32    0.145  26.491   0.000   0.961   0.000   0.039
+E K  1EDIA                 33    0.552 113.445   0.000   0.901   0.000   0.099
+E D  1EDIA                 34    0.848 122.177   0.000   0.817   0.000   0.183
+E D  1EDIA                 35    0.495  71.292   0.000   0.002   0.000   0.998
+E P  1EDIA                 36    0.597  84.682   0.000   0.910   0.000   0.090
+E S  1EDIA                 37    0.704  82.481   0.000   0.924   0.000   0.075
+E Q  1EDIA                 38    0.473  84.509   0.000   0.940   0.000   0.060
+B S  1EDIA                 39    0.166  19.451   0.000   0.965   0.000   0.035
+E A  1EDIA                 40    0.473  52.122   0.000   0.972   0.001   0.028
+E N  1EDIA                 41    0.653  95.651   0.000   0.974   0.001   0.025
+B V  1EDIA                 42    0.180  27.730   0.000   0.995   0.000   0.005
+E L  1EDIA                 43    0.269  49.241   0.000   0.996   0.000   0.003
+E G  1EDIA                 44    0.416  32.774   0.000   0.995   0.000   0.005
+E E  1EDIA                 45    0.464  80.996   0.000   0.994   0.000   0.006
+B A  1EDIA                 46    0.143  15.726   0.000   0.993   0.000   0.007
+E Q  1EDIA                 47    0.503  89.838   0.000   0.993   0.000   0.007
+E K  1EDIA                 48    0.626 128.808   0.000   0.976   0.000   0.024
+E L  1EDIA                 49    0.405  74.120   0.000   0.949   0.000   0.050
+E N  1EDIA                 50    0.474  69.365   0.000   0.874   0.000   0.126
+E D  1EDIA                 51    0.711 102.486   0.000   0.735   0.000   0.264
+E S  1EDIA                 52    0.738  86.454   0.000   0.524   0.001   0.476
+E Q  1EDIA                 53    0.712 127.088   0.000   0.284   0.003   0.713
+E A  1EDIA                 54    0.646  71.234   0.000   0.006   0.001   0.993
+E P  1EDIA                 55    0.767 108.889   0.000   0.003   0.000   0.997
+E K  1EDIA                 56    0.943 193.929   0.000   0.000   0.000   1.000

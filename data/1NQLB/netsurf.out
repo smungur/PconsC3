@@ -1,0 +1,73 @@
+# For publication of results, please cite:
+# ...
+# ... Michael Schantz Klausen, Martin Closter Jespersen, Henrik Nielsen, Kamilla Kjærgaard Jensen, 
+# ... Vanessa Isabell Jurtz, Casper Kaae Sønderby, Morten Otto Alexander Sommer, Ole Winther, 
+# ... Morten Nielsen, Bent Petersen, and Paolo Marcatili. 
+# ... NetSurfP-2.0: Improved prediction of protein structural features by integrated deep learning.
+# ... Proteins: Structure, Function, and Bioinformatics (Feb. 2019).
+# ... https://doi.org/10.1002/prot.25674
+# ...
+#
+# Column 1: Class assignment - B for buried or E for Exposed - Threshold: 25% exposure, but not based on RSA
+# Column 2: Amino acid
+# Column 3: Sequence name
+# Column 4: Amino acid number
+# Column 5: Relative Surface Accessibility - RSA
+# Column 6: Absolute Surface Accessibility
+# Column 7: Not used
+# Column 8: Probability for Alpha-Helix
+# Column 9: Probability for Beta-strand
+# Column 10: Probability for Coil
+E N  1NQLB                  1    0.914 133.860   0.000   0.000   0.000   1.000
+E S  1NQLB                  2    0.716  83.953   0.000   0.017   0.005   0.977
+E D  1NQLB                  3    0.784 113.038   0.000   0.067   0.009   0.924
+E S  1NQLB                  4    0.754  88.330   0.000   0.066   0.014   0.920
+E E  1NQLB                  5    0.701 122.436   0.000   0.052   0.132   0.815
+B C  1NQLB                  6    0.183  25.678   0.000   0.006   0.024   0.970
+E P  1NQLB                  7    0.446  63.291   0.000   0.018   0.012   0.970
+E L  1NQLB                  8    0.600 109.790   0.000   0.105   0.021   0.873
+E S  1NQLB                  9    0.613  71.902   0.000   0.142   0.068   0.789
+E H  1NQLB                 10    0.463  84.237   0.000   0.115   0.077   0.807
+E D  1NQLB                 11    0.793 114.291   0.000   0.060   0.054   0.887
+E G  1NQLB                 12    0.411  32.377   0.000   0.036   0.039   0.925
+E Y  1NQLB                 13    0.385  82.307   0.000   0.015   0.414   0.571
+B C  1NQLB                 14    0.049   6.940   0.000   0.022   0.265   0.713
+E L  1NQLB                 15    0.387  70.867   0.000   0.057   0.108   0.835
+E H  1NQLB                 16    0.317  57.699   0.000   0.038   0.068   0.894
+E D  1NQLB                 17    0.672  96.793   0.000   0.034   0.029   0.937
+B G  1NQLB                 18    0.141  11.064   0.000   0.004   0.100   0.896
+E V  1NQLB                 19    0.406  62.387   0.000   0.000   0.970   0.030
+B C  1NQLB                 20    0.112  15.717   0.000   0.000   0.964   0.036
+E M  1NQLB                 21    0.329  65.777   0.000   0.000   0.993   0.007
+E Y  1NQLB                 22    0.492 105.236   0.000   0.000   0.981   0.019
+E I  1NQLB                 23    0.263  48.707   0.000   0.011   0.644   0.345
+E E  1NQLB                 24    0.768 134.189   0.000   0.168   0.177   0.655
+E A  1NQLB                 25    0.625  68.911   0.000   0.155   0.129   0.716
+E L  1NQLB                 26    0.520  95.255   0.000   0.071   0.012   0.916
+E D  1NQLB                 27    0.816 117.603   0.000   0.008   0.008   0.984
+E K  1NQLB                 28    0.486  99.991   0.000   0.004   0.881   0.116
+E Y  1NQLB                 29    0.280  59.933   0.000   0.001   0.937   0.062
+B A  1NQLB                 30    0.185  20.414   0.000   0.000   0.977   0.023
+B C  1NQLB                 31    0.053   7.505   0.000   0.000   0.978   0.022
+E N  1NQLB                 32    0.497  72.806   0.000   0.001   0.892   0.108
+B C  1NQLB                 33    0.090  12.702   0.000   0.001   0.353   0.647
+E V  1NQLB                 34    0.402  61.842   0.000   0.001   0.043   0.956
+E V  1NQLB                 35    0.691 106.130   0.000   0.001   0.006   0.992
+E G  1NQLB                 36    0.583  45.912   0.000   0.003   0.032   0.965
+E Y  1NQLB                 37    0.273  58.308   0.000   0.003   0.429   0.569
+E I  1NQLB                 38    0.487  90.034   0.000   0.001   0.810   0.189
+E G  1NQLB                 39    0.257  20.231   0.000   0.038   0.356   0.606
+E E  1NQLB                 40    0.761 132.954   0.000   0.037   0.221   0.742
+E R  1NQLB                 41    0.517 118.405   0.000   0.026   0.167   0.807
+B C  1NQLB                 42    0.112  15.730   0.000   0.017   0.400   0.583
+E Q  1NQLB                 43    0.482  86.142   0.000   0.017   0.746   0.237
+E Y  1NQLB                 44    0.549 117.419   0.000   0.012   0.892   0.096
+E R  1NQLB                 45    0.472 108.109   0.000   0.011   0.776   0.213
+E D  1NQLB                 46    0.731 105.376   0.000   0.012   0.641   0.347
+E L  1NQLB                 47    0.347  63.572   0.000   0.077   0.210   0.712
+E K  1NQLB                 48    0.692 142.268   0.000   0.172   0.186   0.642
+E W  1NQLB                 49    0.565 135.903   0.000   0.195   0.093   0.712
+E W  1NQLB                 50    0.394  94.678   0.000   0.092   0.378   0.529
+E E  1NQLB                 51    0.670 117.107   0.000   0.052   0.462   0.486
+E L  1NQLB                 52    0.534  97.838   0.000   0.016   0.203   0.781
+E R  1NQLB                 53    0.841 192.675   0.000   0.000   0.002   0.998
