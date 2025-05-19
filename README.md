@@ -60,6 +60,7 @@ To automatically download the tree model files (`tlayer0.zip` to `tlayer5.zip`),
 
 ```bash
 python3 downloadTrees.py
+```
 
 This script uses `gdown` to fetch and unzip the required model files.
 
