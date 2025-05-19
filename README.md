@@ -9,6 +9,26 @@ If you use PconsC3 please cite:
 * Carlo Baldassi, Marco Zamparo, Christoph Feinauer, Andrea Procaccini, Riccardo Zecchina, Martin Weigt and Andrea Pagnani, (2014) PLoS ONE 9(3): e92721. doi:10.1371/journal.pone.0092721
 * Christoph Feinauer, Marcin J. Skwark, Andrea Pagnani, and Erik Aurell. (2014) PLoS Comp Bio: e1003847. doi:10.1371/journal.pcbi.1003847
 
+## 📑 Table of Contents
+- PconsC3
+    - 📑 Table of Contents
+- Prerequisites
+- 📂 Dataset Structure
+    - 📁 Access to Required Model Files
+        - 📁 Access PconsC3 model files on Google Drive
+        - 📦 Automatic download of tree models
+        - 📥 Download Required HDF5 Model Files
+- ▶️ Running PconsC3
+- [🐳 Running with Docker](#-running-with-docker)
+- [🐳 Running the Prediction Inside Docker](#-running-the-prediction-inside-docker)
+- [📊 Running Batch Experiments (Benchmark Evaluation)](#-running-batch-experiments-benchmark-evaluation)
+  - [🧪 Option 1: Run all proteins sequentially](#-option-1-run-all-proteins-sequentially)
+  - [⚡ Option 2: Run in parallel by prefix](#-option-2-run-in-parallel-by-prefix)
+  - [🔄 Check for missing predictions](#-check-for-missing-predictions)
+  - [⚙️ Important – Set treefraction = 03](#️-important--set-treefraction--03)
+  - [✅ Evaluate all results](#-evaluate-all-results)
+
+
 # Prerequisites
 
 * h5py and cython if you want to use the parallel version with hdf5 support (**highly recommended** even for non-parallel usage, see **Parallel version** below.)
@@ -71,8 +91,10 @@ This script uses `gdown` to fetch and unzip the required model files.
 > ```
 
 
-### 📥 Download Required HDF5 Model Files
+### 📥 Download or generate required HDF5 Model Files
 
+#### ✅ Recommended: Download via script (outside Docker)
+You have two options to get the required `.hdf5 files` (`tlayer0.hdf5` to `tlayer5.hdf5`):
 To download all `.hdf5` model layers automatically, use:
 
 ```bash
@@ -82,8 +104,14 @@ python3 downloadHDF5.py
 After downloading:
 - Place the `.hdf5` files in the root of the project
 - These replace the need for the original `tforest0` to `tforest5` folders
+#### 🛠️ Alternative: Convert tree models to HDF5 (inside Docker)
+If you already have the tree model folders (`tforest0` to `tforest5`) inside your Docker container, you can convert them to HDF5 format using:
+```bash
+python3 convert_to_hdf5.py
+```
+However, **this step is optional** if you use `downloadHDF5.py`, which is the recommended and simpler approach
 
-## ▶️ Running PconsC3
+# ▶️ Running PconsC3
 
 To run the prediction on a given protein (e.g., `1AHSC`), use the following command:
 
@@ -145,8 +173,8 @@ Once inside the Docker container (see section above), you can run the prediction
 ```bash
 python3 predict.py \
   data/1AHSC/gdca.out \
-  data/1AHSC/plmdca_parsed.out \
-  data/1AHSC/phycmap_parsed.out \
+  data/1AHSC/plmdca.out \
+  data/1AHSC/phycmap.out \
   data/1AHSC/netsurf.out \
   data/1AHSC/psipred.ss2 \
   data/1AHSC/alignment.stats \
@@ -156,6 +184,89 @@ python3 predict.py \
   results/1AHSC/1AHSC_output
 ```
 
+Voici des exemples d'utilisation de predict-parallel et predict-parallel-hdf5 où 4 est le nombre de thread.
+```bash
+python3 predict-parallel.py \
+  data/1AHSC/gdca.out \
+  data/1AHSC/plmdca.out \
+  data/1AHSC/phycmap.out \
+  data/1AHSC/netsurf.out \
+  data/1AHSC/psipred.ss2 \
+  data/1AHSC/alignment.stats \
+  data/1AHSC/alignment.a3m \
+  /app \
+  0 \
+  results/1AHSC/1AHSC_output
+  4
+```
+
+```bash
+python3 predict-parallel-hdf5.py \
+  data/1AHSC/gdca.out \
+  data/1AHSC/plmdca.out \
+  data/1AHSC/phycmap.out \
+  data/1AHSC/netsurf.out \
+  data/1AHSC/psipred.ss2 \
+  data/1AHSC/alignment.stats \
+  data/1AHSC/alignment.a3m \
+  /app \
+  0 \
+  results/1AHSC/1AHSC_output
+  4
+```
+# 📊 Running Batch Experiments (Benchmark Evaluation)
+
+Once inside the Docker container, you can run large-scale predictions on all proteins in the benchmark.
+
+---
+
+## 🧪 Option 1: Run all proteins sequentially
+
+This method uses a single script to run predictions on every protein found in the `data/` folder:
+
+```bash
+python3 batch_predict_hdf5.py
+```
+⏱ **Estimated time**: ~3 to 4 hours (single process)
+
+
+## ⚡ Option 2: Run in parallel by prefix
+To speed up execution, open **four terminals** (or use a multiplexer like `tmux`) and run:
+```bash
+python3 batch_1.py
+python3 batch_2.py
+python3 batch_3.py
+python3 batch_4.py
+
+```
+Each script runs `predict-parallel-hdf5.py` on all proteins whose names start with `1`, `2`, `3`, or `4`.
+
+⏱ **Estimated time**: ~1 to 2 hours total (multi-process, parallel)
+
+## 🔄 Check for missing predictions
+After batch execution, you can recover any failed or missing runs with:
+```bash
+python3 launch_missing_predictions.py
+```
+This script checks `results/<protein>/` for the file `<protein>_output.l5`, and only runs missing ones
+
+## Important – Set treefraction = 0.3
+In `predict-parallel-hdf5.py`, make sure the following line is set:
+```python
+treefraction = 0.3
+```
+This setting avoids memory issues on large proteins like 1C9YA, and is also the recommended default from the original PconsC3 repository.
+ 
+ ## ✅ Evaluate all results
+ Once all predictions are done, run:
+```bash
+python3 evaluate_all_cases.py
+```
+This script computes **Precision**, **Recall**, **F1-score**, and other metrics for each protein, and outputs a summary file:
+```bash
+results_summary.csv
+```
+    
 # Parallel version and HDF5 support (recommended, even for non-parallel usage)
 
 The parallel version with HDF5 support drastically reduces IO and computation time, while not changing the output in any way. To set it up make sure h5py and Cython are in your PYTHONPATH. You can install the packages via pip:
