@@ -27,7 +27,7 @@ If you use PconsC3 please cite:
   - [🔄 Check for missing predictions](#-check-for-missing-predictions)
   - [⚙️ Important – Set treefraction = 03](#️-important--set-treefraction--03)
   - [✅ Evaluate all results](#-evaluate-all-results)
-- # 🗂️ Project Structure and File Usage
+-  🗂️ Project Structure and File Usage
     - 📁 Key Folders
     -  📄 Prediction Scripts
     - 📄 Model Download and Preparation
