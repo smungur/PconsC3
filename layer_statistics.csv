@@ -1,7 +1,0 @@
-ID,Layer,mean,median,min,max,std
-1AHSC_output,layer0,0.3377,0.254,0.0029,1.0,0.3329
-1AHSC_output,layer1,0.3376,0.254,0.0015,1.0,0.333
-1AHSC_output,layer2,0.3379,0.254,0.0015,1.0,0.3327
-1AHSC_output,layer3,0.338,0.254,0.0015,1.0,0.3326
-1AHSC_output,layer4,0.338,0.254,0.0017,1.0,0.3326
-1AHSC_output,layer5,0.338,0.254,0.0015,1.0,0.3326
