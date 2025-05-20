@@ -1,79 +1,138 @@
 import os
+import sys
+import csv
+import glob
+import numpy as np
 from Bio.PDB import PDBParser
 
-DATA_DIR = "data"
-RESULTS_DIR = "results"
-OUTPUT_FILE = "results_summary.csv"
+# Parameters: minimum sequence separation and fraction of top contacts to evaluate
+MIN_SEQ_SEP = 6      # ignore contacts with |i-j| < MIN_SEQ_SEP
+TOP_FRACTION = 0.5   # use top L/5 contacts by default
 
-def load_structure(pdb_file):
+
+def load_predictions(l5_path):
+    """Load predictions from a .l5 file as (i, j, score) tuples, ensuring i<j order."""
+    preds = []
+    with open(l5_path) as f:
+        for line in f:
+            parts = line.strip().split()
+            if len(parts) != 3:
+                continue  # skip malformed lines
+            i, j, s = parts
+            i, j = int(i), int(j)
+            # enforce ordering
+            pi, pj = (i, j) if i < j else (j, i)
+            preds.append((pi, pj, float(s)))
+    return preds
+
+
+def load_native_contacts(pdb_path, cutoff=8.0):
+    """Extract native contacts from a PDB file.
+
+    Returns a set of (i, j) residue index pairs where C-alpha distance <= cutoff
+    and sequence separation >= MIN_SEQ_SEP. Skips residues missing CA."""
     parser = PDBParser(QUIET=True)
-    structure = parser.get_structure("native", pdb_file)
-    return [res for res in structure.get_residues() if res.id[0] == " "]
+    structure = parser.get_structure('X', pdb_path)
+    model = structure[0]
 
-def get_cb_distance(res1, res2):
-    try:
-        atom1 = res1['CB']
-    except KeyError:
-        atom1 = res1['CA']
-    try:
-        atom2 = res2['CB']
-    except KeyError:
-        atom2 = res2['CA']
-    return atom1 - atom2
+    # gather residues with CA atom in sequential order
+    residues = []
+    for chain in model:
+        for res in chain:
+            if res.id[0] == ' ' and 'CA' in res:
+                residues.append(res)
+    n = len(residues)
 
-def extract_native_contacts(residues, max_dist=8.0, min_sep=5):
     native = set()
-    for i in range(len(residues)):
-        for j in range(i + min_sep, len(residues)):
-            try:
-                if get_cb_distance(residues[i], residues[j]) <= max_dist:
-                    native.add((i, j))
-            except:
-                continue
+    for a in range(n):
+        for b in range(a + MIN_SEQ_SEP, n):  # enforce minimum sequence separation
+            ca1 = residues[a]['CA']
+            ca2 = residues[b]['CA']
+            dist = ca1 - ca2
+            if dist <= cutoff:
+                # use 1-based residue numbering from PDB
+                i = residues[a].id[1]
+                j = residues[b].id[1]
+                native.add((i, j))
     return native
 
-def load_predictions(l5_file, top_n):
-    preds = []
-    with open(l5_file) as f:
-        for line in f:
-            i, j, score = line.strip().split()
-            preds.append((int(i), int(j), float(score)))
-    preds.sort(key=lambda x: x[2], reverse=True)
-    return set((i, j) for i, j, _ in preds[:top_n])
 
-def compute_metrics(native, predicted):
-    TP = len(native & predicted)
-    FP = len(predicted - native)
-    FN = len(native - predicted)
-    precision = TP / (TP + FP) if TP + FP > 0 else 0
-    recall = TP / (TP + FN) if TP + FN > 0 else 0
-    f1 = 2 * precision * recall / (precision + recall) if precision + recall > 0 else 0
-    return TP, FP, FN, precision, recall, f1
+def evaluate_case(preds, native, L, fraction=TOP_FRACTION):
+    """Filter, select top contacts, and compute precision, recall, F1 metrics."""
+    # 1) filter by minimum sequence separation
+    filtered = [(i, j, s) for (i, j, s) in preds if abs(i - j) >= MIN_SEQ_SEP]
 
-# Main loop
-results = [("Protein", "TP", "FP", "FN", "Precision", "Recall", "F1-score")]
-for protein_id in os.listdir(DATA_DIR):
-    data_path = os.path.join(DATA_DIR, protein_id)
-    result_path = os.path.join(RESULTS_DIR, protein_id)
-    pdb_file = os.path.join(data_path, protein_id[:4].lower() + ".pdb")
-    l5_file = os.path.join(result_path, protein_id + "_output.l5")
+    # 2) sort by descending score
+    sorted_preds = sorted(filtered, key=lambda x: x[2], reverse=True)
 
-    if not os.path.exists(pdb_file) or not os.path.exists(l5_file):
-        print(f"⏭️ Skipping {protein_id} (missing files)")
-        continue
+    # 3) select top L * fraction
+    top_n = max(1, int(L * fraction))
+    top_preds = sorted_preds[:top_n]
+    pred_pairs = {(i, j) for (i, j, _) in top_preds}
 
-    residues = load_structure(pdb_file)
-    native_contacts = extract_native_contacts(residues)
-    predicted_contacts = load_predictions(l5_file, top_n=2 * len(residues))
-    TP, FP, FN, precision, recall, f1 = compute_metrics(native_contacts, predicted_contacts)
+    # 4) compute metrics
+    TP = len(pred_pairs & native)
+    FP = len(pred_pairs - native)
+    FN = len(native - pred_pairs)
+    precision = TP / (TP + FP) if (TP + FP) > 0 else 0.0
+    recall = TP / (TP + FN) if (TP + FN) > 0 else 0.0
+    f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
+    return precision, recall, f1
 
-    print(f"✅ {protein_id}: F1 = {f1:.3f}, PPV = {precision:.3f}, Recall = {recall:.3f}")
-    results.append((protein_id, TP, FP, FN, f"{precision:.3f}", f"{recall:.3f}", f"{f1:.3f}"))
 
-# Save to CSV
-with open(OUTPUT_FILE, "w") as f:
-    for row in results:
-        f.write(",".join(map(str, row)) + "\n")
+def main(input_dir):
+    """Traverse results directory or treat input_dir as project root, evaluate each protein, and write summary CSV."""
+    input_basename = os.path.basename(input_dir.rstrip(os.sep))
+    if input_basename == 'results' and os.path.isdir(input_dir):
+        project_root = os.path.dirname(os.path.abspath(input_dir))
+    else:
+        project_root = input_dir
+    results_dir = os.path.join(project_root, 'results')
+    data_dir = os.path.join(project_root, 'data')
 
-print(f"\n📄 Summary saved to {OUTPUT_FILE}")
+    if not os.path.isdir(results_dir):
+        print(f"Error: 'results' directory not found under {project_root}.")
+        sys.exit(1)
+    if not os.path.isdir(data_dir):
+        print(f"Error: 'data' directory not found under {project_root}.")
+        sys.exit(1)
 
+    summary = []
+    for protein in os.listdir(results_dir):
+        prot_dir = os.path.join(results_dir, protein)
+        if not os.path.isdir(prot_dir):
+            continue
+
+        l5_files = glob.glob(os.path.join(prot_dir, '*_output.l5'))
+        if not l5_files:
+            print(f"Warning: no .l5 file found for {protein}")
+            continue
+        l5_path = l5_files[0]
+        preds = load_predictions(l5_path)
+
+        pdb_files = glob.glob(os.path.join(data_dir, protein, '*.pdb'))
+        if not pdb_files:
+            print(f"Warning: no PDB file (.pdb) found in data/{protein}, skipping.")
+            continue
+        pdb_path = pdb_files[0]
+        native = load_native_contacts(pdb_path)
+
+        structure = PDBParser(QUIET=True).get_structure('X', pdb_path)
+        L = sum(1 for chain in structure[0] for res in chain if res.id[0] == ' ' and 'CA' in res)
+
+        prec, rec, f1 = evaluate_case(preds, native, L)
+        summary.append((protein, prec, rec, f1))
+
+    csv_path = os.path.join(project_root, 'results_summary.csv')
+    with open(csv_path, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(['Protein', 'Precision', 'Recall', 'F1'])
+        for protein, prec, rec, f1 in summary:
+            writer.writerow([protein, f"{prec:.3f}", f"{rec:.3f}", f"{f1:.3f}"])
+    print(f"Summary written to {csv_path}")
+
+if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        print("Usage: python evaluate_all_cases.py <results_folder_or_project_root>")
+        sys.exit(1)
+    main(sys.argv[1])
