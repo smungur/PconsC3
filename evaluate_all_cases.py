@@ -6,7 +6,7 @@ import numpy as np
 from Bio.PDB import PDBParser
 
 # Parameters: minimum sequence separation and fraction of top contacts to evaluate
-MIN_SEQ_SEP = 6      # ignore contacts with |i-j| < MIN_SEQ_SEP
+MIN_SEQ_SEP = 5      # we follow |i-j| ≥ 5 as in the article
 TOP_FRACTION = 0.2   # default: use top L/5 contacts for evaluation
 
 
@@ -46,24 +46,40 @@ def load_native_contacts(pdb_path, cutoff=8.0):
     return native
 
 
-def evaluate_case(preds, native, L, fraction=TOP_FRACTION):
-    """Filter by sequence sep, select top L*fraction, compute precision, recall, F1."""
-    # filter
-    filt = [(i,j,s) for (i,j,s) in preds if abs(i-j) >= MIN_SEQ_SEP]
-    # sort
-    sorted_preds = sorted(filt, key=lambda x: x[2], reverse=True)
-    # select top
-    top_n = max(1, int(L * fraction))
-    top = sorted_preds[:top_n]
-    pred_pairs = {(i,j) for (i,j,_) in top}
-    # metrics
+def evaluate_case(preds, native, L):
+    """
+    preds   : list of tuples (i, j, score) from your predictions
+    native  : set of tuples (i, j) of true contacts extracted from the PDB
+    L       : sequence length (number of residues)
+    """
+
+    # 1) Filter out pairs too close in sequence (|i – j| < 5) per §2.5
+    candidates = [(i, j, s) for (i, j, s) in preds if abs(i - j) >= 5]
+
+    # 2) Sort predictions by descending score
+    candidates.sort(key=lambda x: x[2], reverse=True)
+
+    # 3) Determine N = number of true contacts
+    N = len(native)
+
+    # 4) Select the top N predictions (top-ranked contacts)
+    top_preds = candidates[:N]
+
+    # 5) Build the set of predicted residue pairs
+    pred_pairs = {(i, j) for (i, j, _) in top_preds}
+
+    # 6) Count true positives, false positives, false negatives
     TP = len(pred_pairs & native)
     FP = len(pred_pairs - native)
     FN = len(native - pred_pairs)
-    prec = TP/(TP+FP) if (TP+FP)>0 else 0.0
-    rec  = TP/(TP+FN) if (TP+FN)>0 else 0.0
-    f1   = 2*prec*rec/(prec+rec) if (prec+rec)>0 else 0.0
-    return prec, rec, f1
+
+    # 7) Compute metrics as defined in §2.6
+    precision = TP / (TP + FP) if (TP + FP) > 0 else 0.0
+    recall    = TP / (TP + FN) if (TP + FN) > 0 else 0.0
+    f1        = (2 * precision * recall / (precision + recall)
+                 if (precision + recall) > 0 else 0.0)
+
+    return precision, recall, f1
 
 
 def main(input_dir):
