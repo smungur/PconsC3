@@ -123,8 +123,21 @@ def main(input_dir):
             continue
         l5s = glob.glob(os.path.join(prot_dir, '*_output.l5'))
         if not l5s: continue
-        preds = load_predictions(l5s[0])
+        # 1) Load raw predictions indexed by sequence position
+        raw_preds = load_predictions(l5s[0])
+
+        # 2) Build mapping from sequence index → PDB residue number
+        pdb_file = glob.glob(os.path.join(data_dir, prot, '*.pdb'))[0]
+        structure = PDBParser(QUIET=True).get_structure('X', pdb_file)[0]
+        residues = [r for chain in structure for r in chain if r.id[0]==' ' and 'CA' in r]
+        seq2pdb = {idx+1: res.id[1] for idx, res in enumerate(residues)}
+
+        # 3) Remap predictions to PDB numbering
+        preds = [(seq2pdb[i], seq2pdb[j], s) for i, j, s in raw_preds if i in seq2pdb and j in seq2pdb]
+
+        # 4) Evaluate remapped predictions
         prec, rec, f1 = evaluate_case(preds, native_map[prot], length_map[prot])
+
         results_summary.append((prot, prec, rec, f1))
     # write results_summary.csv
     out1 = os.path.join(project_root, 'results_summary.csv')
@@ -146,8 +159,21 @@ def main(input_dir):
             if not os.path.exists(path):
                 print(f"Warning: missing {fname} for {prot}")
                 continue
-            preds = load_predictions(path)
+            # 1) Load raw predictions indexed by sequence position
+            raw_preds = load_predictions(path)
+
+            # 2) Build mapping from sequence index → PDB residue number
+            pdb_file = glob.glob(os.path.join(data_dir, prot, '*.pdb'))[0]
+            structure = PDBParser(QUIET=True).get_structure('X', pdb_file)[0]
+            residues = [r for chain in structure for r in chain if r.id[0]==' ' and 'CA' in r]
+            seq2pdb = {idx+1: res.id[1] for idx, res in enumerate(residues)}
+
+            # 3) Remap predictions to PDB numbering
+            preds = [(seq2pdb[i], seq2pdb[j], s) for i, j, s in raw_preds if i in seq2pdb and j in seq2pdb]
+
+            # 4) Evaluate remapped predictions
             prec, rec, f1 = evaluate_case(preds, native_map[prot], length_map[prot])
+
             bench_summary.append((prot, layer, prec, rec, f1))
     # write benchmark_summary.csv
     out2 = os.path.join(project_root, 'benchmark_summary.csv')
