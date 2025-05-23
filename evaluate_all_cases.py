@@ -3,11 +3,63 @@ import sys
 import csv
 import glob
 import numpy as np
-from Bio.PDB import PDBParser
+from Bio.PDB import PDBParser, PPBuilder
+from Bio import SeqIO, pairwise2
+from Bio.Data.IUPACData import protein_letters_3to1 as _triple2single
 
 # Parameters: minimum sequence separation and fraction of top contacts to evaluate
 MIN_SEQ_SEP = 5      # we follow |i-j| ≥ 5 as in the article
 TOP_FRACTION = 0.2   # default: use top L/5 contacts for evaluation
+
+# Helper: convert 3-letter code to 1-letter
+def three_to_one(resname):
+    return _triple2single.get(resname.capitalize(), 'X')
+
+# Helper: build a mapping from your FASTA indices → PDB residue numbers
+def build_seq2pdb(fasta_path, pdb_path):
+    # 1) load your exact DCA sequence
+    target = str(next(SeqIO.parse(fasta_path, 'fasta')).seq).replace('-', '')
+    parser = PDBParser(QUIET=True)
+    structure = parser.get_structure('X', pdb_path)[0]
+
+    best_score = -1
+    best_chain = None
+
+    for chain in structure:
+        # collect CA atoms for this chain
+        residues = [r for r in chain if r.id[0]==' ' and 'CA' in r]
+        if not residues:
+            continue
+        # build chain sequence
+        chain_seq = ''.join(three_to_one(r.resname) for r in residues)
+        if len(chain_seq) == 0:
+            continue
+        # try alignment, skip if none
+        try:
+            aln = pairwise2.align.globalxx(target, chain_seq, one_alignment_only=True)[0]
+        except IndexError:
+            continue
+        if aln.score > best_score:
+            best_score = aln.score
+            best_chain = (residues, aln)
+
+    if best_chain is None:
+        # fallback: naive enumeration
+        print(f"WARNING: no good chain alignment for {os.path.basename(pdb_path)}, falling back to naive mapping")
+        residues = [r for chain in structure for r in chain if r.id[0]==' ' and 'CA' in r]
+        return { i+1: residues[i].id[1] for i in range(len(residues)) }
+
+    residues, (t_aln, c_aln, *_ ) = best_chain
+    # walk the alignment
+    seq2pdb = {}
+    t_idx = c_idx = 0
+    for a_t, a_c in zip(t_aln, c_aln):
+        if a_t != '-': t_idx += 1
+        if a_c != '-': c_idx += 1
+        if a_t != '-' and a_c != '-':
+            seq2pdb[t_idx] = residues[c_idx-1].id[1]
+    return seq2pdb
+
 
 
 def load_predictions(pred_path):
@@ -46,7 +98,7 @@ def load_native_contacts(pdb_path, cutoff=8.0):
     return native
 
 
-def evaluate_case(preds, native, L):
+def evaluate_case(preds, native):
     """
     preds   : list of tuples (i, j, score) from your predictions
     native  : set of tuples (i, j) of true contacts extracted from the PDB
@@ -123,20 +175,44 @@ def main(input_dir):
             continue
         l5s = glob.glob(os.path.join(prot_dir, '*_output.l5'))
         if not l5s: continue
-        # 1) Load raw predictions indexed by sequence position
+        from Bio import SeqIO
+
+        # 1) Load raw predictions (sequence‐indexed)
         raw_preds = load_predictions(l5s[0])
 
-        # 2) Build mapping from sequence index → PDB residue number
-        pdb_file = glob.glob(os.path.join(data_dir, prot, '*.pdb'))[0]
-        structure = PDBParser(QUIET=True).get_structure('X', pdb_file)[0]
-        residues = [r for chain in structure for r in chain if r.id[0]==' ' and 'CA' in r]
-        seq2pdb = {idx+1: res.id[1] for idx, res in enumerate(residues)}
+        # 2) Load the exact target sequence you gave to DCA
+        #fasta_path = os.path.join(data_dir, prot, 'sequence.fa')
+        #record     = next(SeqIO.parse(fasta_path, 'fasta'))
+        #seq        = str(record.seq).replace('-', '')   # strip any insert gaps
+        #L_seq      = len(seq)
 
-        # 3) Remap predictions to PDB numbering
-        preds = [(seq2pdb[i], seq2pdb[j], s) for i, j, s in raw_preds if i in seq2pdb and j in seq2pdb]
+        # 3) Load PDB and extract CA atoms
+      #  pdb_file = glob.glob(os.path.join(data_dir, prot, '*.pdb'))[0]
+      #  parser   = PDBParser(QUIET=True)
+      #  model    = parser.get_structure('X', pdb_file)[0]
+      #  pdb_cas  = [r for chain in model for r in chain if r.id[0]==' ' and 'CA' in r]
+     #   L_pdb    = len(pdb_cas)
 
-        # 4) Evaluate remapped predictions
-        prec, rec, f1 = evaluate_case(preds, native_map[prot], length_map[prot])
+        # 4) Sanity check
+        #if L_seq != L_pdb:
+        #    print(f"WARNING: length mismatch for {prot}: seq={L_seq}, pdb_CA={L_pdb}")
+        #    You may need to handle missing residues or alignment inserts here.
+
+        # 5) Build seq→PDB map
+        #seq2pdb = { i+1: pdb_cas[i].id[1] for i in range(min(L_seq, L_pdb)) }
+        
+        # 2) map sequence indices → PDB residue numbers
+        fasta_path = os.path.join(data_dir, prot, 'sequence.fa')
+        pdb_file   = glob.glob(os.path.join(data_dir, prot, '*.pdb'))[0]
+        seq2pdb    = build_seq2pdb(fasta_path, pdb_file)
+
+        # 3) remap preds and evaluate
+        preds = [(seq2pdb[i], seq2pdb[j], s)
+        for i,j,s in raw_preds
+        if i in seq2pdb and j in seq2pdb]
+
+        # 7) Evaluate
+        prec, rec, f1 = evaluate_case(preds, native_map[prot])#, L_pdb)
 
         results_summary.append((prot, prec, rec, f1))
     # write results_summary.csv
@@ -163,16 +239,20 @@ def main(input_dir):
             raw_preds = load_predictions(path)
 
             # 2) Build mapping from sequence index → PDB residue number
-            pdb_file = glob.glob(os.path.join(data_dir, prot, '*.pdb'))[0]
-            structure = PDBParser(QUIET=True).get_structure('X', pdb_file)[0]
-            residues = [r for chain in structure for r in chain if r.id[0]==' ' and 'CA' in r]
-            seq2pdb = {idx+1: res.id[1] for idx, res in enumerate(residues)}
+            fasta_path = os.path.join(data_dir, prot, 'sequence.fa')
+            pdb_file   = glob.glob(os.path.join(data_dir, prot, '*.pdb'))[0]
+            seq2pdb    = build_seq2pdb(fasta_path, pdb_file)
 
             # 3) Remap predictions to PDB numbering
-            preds = [(seq2pdb[i], seq2pdb[j], s) for i, j, s in raw_preds if i in seq2pdb and j in seq2pdb]
+            preds = [
+                (seq2pdb[i], seq2pdb[j], s)
+                for i, j, s in raw_preds
+                if i in seq2pdb and j in seq2pdb
+            ]
+
 
             # 4) Evaluate remapped predictions
-            prec, rec, f1 = evaluate_case(preds, native_map[prot], length_map[prot])
+            prec, rec, f1 = evaluate_case(preds, native_map[prot])
 
             bench_summary.append((prot, layer, prec, rec, f1))
     # write benchmark_summary.csv
