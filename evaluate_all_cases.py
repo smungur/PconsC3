@@ -4,12 +4,16 @@ import csv
 import glob
 import numpy as np
 from Bio.PDB import PDBParser, PPBuilder
-from Bio import SeqIO, pairwise2
+from Bio import SeqIO
+from Bio.Align import PairwiseAligner
 from Bio.Data.IUPACData import protein_letters_3to1 as _triple2single
 
 # Parameters: minimum sequence separation and fraction of top contacts to evaluate
 MIN_SEQ_SEP = 5      # we follow |i-j| ≥ 5 as in the article
 TOP_FRACTION = 0.2   # default: use top L/5 contacts for evaluation
+
+aligner = PairwiseAligner()
+aligner.mode = "global"
 
 # Helper: convert 3-letter code to 1-letter
 def three_to_one(resname):
@@ -36,7 +40,7 @@ def build_seq2pdb(fasta_path, pdb_path):
             continue
         # try alignment, skip if none
         try:
-            aln = pairwise2.align.globalxx(target, chain_seq, one_alignment_only=True)[0]
+            aln = aligner.align(target, chain_seq)[0]
         except IndexError:
             continue
         if aln.score > best_score:
@@ -168,7 +172,9 @@ def main(input_dir):
         length_map[prot] = L
 
     # evaluate results predictions
+    # before any loops, after you load native_map & length_map…
     results_summary = []
+    seq2pdb_map = {}
     for prot in os.listdir(results_dir):
         prot_dir = os.path.join(results_dir, prot)
         if not os.path.isdir(prot_dir) or prot not in native_map:
@@ -177,43 +183,23 @@ def main(input_dir):
         if not l5s: continue
         from Bio import SeqIO
 
-        # 1) Load raw predictions (sequence‐indexed)
-        raw_preds = load_predictions(l5s[0])
-
-        # 2) Load the exact target sequence you gave to DCA
-        #fasta_path = os.path.join(data_dir, prot, 'sequence.fa')
-        #record     = next(SeqIO.parse(fasta_path, 'fasta'))
-        #seq        = str(record.seq).replace('-', '')   # strip any insert gaps
-        #L_seq      = len(seq)
-
-        # 3) Load PDB and extract CA atoms
-      #  pdb_file = glob.glob(os.path.join(data_dir, prot, '*.pdb'))[0]
-      #  parser   = PDBParser(QUIET=True)
-      #  model    = parser.get_structure('X', pdb_file)[0]
-      #  pdb_cas  = [r for chain in model for r in chain if r.id[0]==' ' and 'CA' in r]
-     #   L_pdb    = len(pdb_cas)
-
-        # 4) Sanity check
-        #if L_seq != L_pdb:
-        #    print(f"WARNING: length mismatch for {prot}: seq={L_seq}, pdb_CA={L_pdb}")
-        #    You may need to handle missing residues or alignment inserts here.
-
-        # 5) Build seq→PDB map
-        #seq2pdb = { i+1: pdb_cas[i].id[1] for i in range(min(L_seq, L_pdb)) }
-        
-        # 2) map sequence indices → PDB residue numbers
+        # --- PRECOMPUTE mapping once ---
         fasta_path = os.path.join(data_dir, prot, 'sequence.fa')
         pdb_file   = glob.glob(os.path.join(data_dir, prot, '*.pdb'))[0]
-        seq2pdb    = build_seq2pdb(fasta_path, pdb_file)
-
-        # 3) remap preds and evaluate
-        preds = [(seq2pdb[i], seq2pdb[j], s)
-        for i,j,s in raw_preds
-        if i in seq2pdb and j in seq2pdb]
-
-        # 7) Evaluate
-        prec, rec, f1 = evaluate_case(preds, native_map[prot])#, L_pdb)
-
+        seq2pdb_map[prot]     = build_seq2pdb(fasta_path, pdb_file)
+        
+        # Load, remap & evaluate in one pass
+        l5s = glob.glob(os.path.join(prot_dir, '*_output.l5'))
+        if not l5s:
+            continue
+        raw_preds = load_predictions(l5s[0])
+        seq2pdb = seq2pdb_map[prot]
+        preds = [
+            (seq2pdb[i], seq2pdb[j], s)
+            for i,j,s in raw_preds
+            if i in seq2pdb and j in seq2pdb
+        ]
+        prec, rec, f1 = evaluate_case(preds, native_map[prot])
         results_summary.append((prot, prec, rec, f1))
     # write results_summary.csv
     out1 = os.path.join(project_root, 'results_summary.csv')
@@ -225,43 +211,40 @@ def main(input_dir):
 
     # evaluate benchmarkset layers
     bench_summary = []
+    # before any loops, after you load native_map & length_map…
+    seq2pdb_map = {}
     for prot in os.listdir(bench_dir):
         prot_dir = os.path.join(bench_dir, prot)
         if not os.path.isdir(prot_dir) or prot not in native_map:
             continue
-        for layer in range(6):
-            fname = f"pconsc3.l{layer}.out"
-            path = os.path.join(prot_dir, fname)
-            if not os.path.exists(path):
-                print(f"Warning: missing {fname} for {prot}")
-                continue
-            # 1) Load raw predictions indexed by sequence position
-            raw_preds = load_predictions(path)
 
-            # 2) Build mapping from sequence index → PDB residue number
-            fasta_path = os.path.join(data_dir, prot, 'sequence.fa')
-            pdb_file   = glob.glob(os.path.join(data_dir, prot, '*.pdb'))[0]
-            seq2pdb    = build_seq2pdb(fasta_path, pdb_file)
-
-            # 3) Remap predictions to PDB numbering
+        # --- PRECOMPUTE per-protein mapping and raw preds by layer ---
+        fasta_path = os.path.join(data_dir, prot, 'sequence.fa')
+        pdb_file   = glob.glob(os.path.join(data_dir, prot, '*.pdb'))[0]
+        seq2pdb_map[prot]    = build_seq2pdb(fasta_path, pdb_file)
+            
+        # only layer 5 → record (prot,prec,rec,f1) without layer
+        path5 = os.path.join(prot_dir, "pconsc3.l5.out")
+        if os.path.exists(path5):
+            raw_preds = load_predictions(path5)
+            seq2pdb   = seq2pdb_map[prot]
             preds = [
                 (seq2pdb[i], seq2pdb[j], s)
                 for i, j, s in raw_preds
                 if i in seq2pdb and j in seq2pdb
             ]
-
-
-            # 4) Evaluate remapped predictions
             prec, rec, f1 = evaluate_case(preds, native_map[prot])
-
-            bench_summary.append((prot, layer, prec, rec, f1))
+            bench_summary.append((prot, prec, rec, f1))
+        else:
+            print(f"Warning: missing layer 5 for {prot}")
     # write benchmark_summary.csv
     out2 = os.path.join(project_root, 'benchmark_summary.csv')
     with open(out2,'w',newline='') as f:
         w=csv.writer(f)
-        w.writerow(['Protein','Layer','Precision','Recall','F1'])
-        for prot,layer,prec,rec,f1 in sorted(bench_summary):
-            w.writerow([prot,layer,f"{prec:.3f}",f"{rec:.3f}",f"{f1:.3f}"])
+        w.writerow(['Protein','Precision','Recall','F1'])
+        for prot, prec, rec, f1 in sorted(bench_summary):
+            w.writerow([prot,f"{prec:.3f}",f"{rec:.3f}",f"{f1:.3f}"])
+
     print(f"Wrote {out2}")
 
 if __name__=='__main__':
