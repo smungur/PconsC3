@@ -83,23 +83,40 @@ def load_predictions(pred_path):
 
 
 def load_native_contacts(pdb_path, cutoff=8.0):
-    """Extract native contacts (i,j) from PDB: CA distance <= cutoff and |i-j|>=MIN_SEQ_SEP."""
-    parser = PDBParser(QUIET=True)
+    """Extract native contacts using Cβ–Cβ ≤ cutoff, with Cα fallback for Glycine."""
+    parser    = PDBParser(QUIET=True)
     structure = parser.get_structure('X', pdb_path)
-    # flatten residues with CA
-    residues = [res for model in structure for chain in model for res in chain
-                if res.id[0]==' ' and 'CA' in res]
-    n = len(residues)
+    residues = []
+    for model in structure:
+        for chain in model:
+            for res in chain:
+                # only standard amino acids
+                if res.id[0] != ' ':
+                    continue
+                # try CB, then CA; if neither present, skip residue
+                if 'CB' in res:
+                    atom = res['CB']
+                elif 'CA' in res:
+                    atom = res['CA']
+                else:
+                    # skip residues with no backbone atom
+                    continue
+                # record (residue_number, Atom)
+                residues.append((res.id[1], atom))
+
     native = set()
+    n = len(residues)
     for a in range(n):
+        i, atom_i = residues[a]
         for b in range(a + MIN_SEQ_SEP, n):
-            dist = residues[a]['CA'] - residues[b]['CA']
-            if dist <= cutoff:
-                i = residues[a].id[1]
-                j = residues[b].id[1]
+            j, atom_j = residues[b]
+            # compute distance
+            if (atom_i - atom_j) <= cutoff:
                 pi, pj = (i, j) if i < j else (j, i)
                 native.add((pi, pj))
     return native
+
+
 
 
 def evaluate_case(preds, native):
@@ -136,6 +153,44 @@ def evaluate_case(preds, native):
                  if (precision + recall) > 0 else 0.0)
 
     return precision, recall, f1
+
+def eval_results_for(prot):
+    """Compute PPV/Recall/F1 for a single protein from results/."""
+    prot_dir = os.path.join(results_dir, prot)
+    if not os.path.isdir(prot_dir) or prot not in native_map:
+        return None
+
+    # raw preds
+    l5s = glob.glob(os.path.join(prot_dir, '*_output.l5'))
+    if not l5s:
+        return None
+    raw_preds = load_predictions(l5s[0])
+
+    # remap & evaluate
+    seq2pdb = seq2pdb_map[prot]
+    preds    = [(seq2pdb[i], seq2pdb[j], s)
+                for i,j,s in raw_preds
+                if i in seq2pdb and j in seq2pdb]
+    ppv, rec, f1 = evaluate_case(preds, native_map[prot])
+    return (prot, ppv, rec, f1)
+
+def eval_benchmark_for(prot):
+    """Compute PPV/Recall/F1 for layer-5 of a single protein in benchmarkset/."""
+    prot_dir = os.path.join(bench_dir, prot)
+    if not os.path.isdir(prot_dir) or prot not in native_map:
+        return None
+
+    path5 = os.path.join(prot_dir, 'pconsc3.l5.out')
+    if not os.path.exists(path5):
+        return None
+    raw_preds = load_predictions(path5)
+
+    seq2pdb = seq2pdb_map[prot]
+    preds    = [(seq2pdb[i], seq2pdb[j], s)
+                for i,j,s in raw_preds
+                if i in seq2pdb and j in seq2pdb]
+    ppv, rec, f1 = evaluate_case(preds, native_map[prot])
+    return (prot, ppv, rec, f1)
 
 
 def main(input_dir):
