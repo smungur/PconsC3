@@ -7,6 +7,8 @@ from Bio.PDB import PDBParser, PPBuilder
 from Bio import SeqIO
 from Bio.Align import PairwiseAligner
 from Bio.Data.IUPACData import protein_letters_3to1 as _triple2single
+from multiprocessing import Pool
+import time
 
 # Parameters: minimum sequence separation and fraction of top contacts to evaluate
 MIN_SEQ_SEP = 5      # we follow |i-j| ≥ 5 as in the article
@@ -154,43 +156,42 @@ def evaluate_case(preds, native):
 
     return precision, recall, f1
 
-def eval_results_for(prot):
-    """Compute PPV/Recall/F1 for a single protein from results/."""
-    prot_dir = os.path.join(results_dir, prot)
-    if not os.path.isdir(prot_dir) or prot not in native_map:
-        return None
+#def eval_result_prot(prot):
+#    """Evaluate a single protein from results_dir."""
+#    if prot not in native_map:
+#        return None
+#    prot_dir = os.path.join(results_dir, prot)
+#    l5s = glob.glob(os.path.join(prot_dir, '*_output.l5'))
+#    if not l5s:
+#        return None
+#
+#    # load raw preds
+#    raw_preds = load_predictions(l5s[0])
+#
+#    # remap & eval
+#    seq2pdb = seq2pdb_map[prot]
+#    preds   = [(seq2pdb[i], seq2pdb[j], s)
+#               for i,j,s in raw_preds
+#               if i in seq2pdb and j in seq2pdb]
+#    ppv, rec, f1 = evaluate_case(preds, native_map[prot])
+#    return (prot, ppv, rec, f1)
 
-    # raw preds
-    l5s = glob.glob(os.path.join(prot_dir, '*_output.l5'))
-    if not l5s:
-        return None
-    raw_preds = load_predictions(l5s[0])
-
-    # remap & evaluate
-    seq2pdb = seq2pdb_map[prot]
-    preds    = [(seq2pdb[i], seq2pdb[j], s)
-                for i,j,s in raw_preds
-                if i in seq2pdb and j in seq2pdb]
-    ppv, rec, f1 = evaluate_case(preds, native_map[prot])
-    return (prot, ppv, rec, f1)
-
-def eval_benchmark_for(prot):
-    """Compute PPV/Recall/F1 for layer-5 of a single protein in benchmarkset/."""
-    prot_dir = os.path.join(bench_dir, prot)
-    if not os.path.isdir(prot_dir) or prot not in native_map:
-        return None
-
-    path5 = os.path.join(prot_dir, 'pconsc3.l5.out')
-    if not os.path.exists(path5):
-        return None
-    raw_preds = load_predictions(path5)
-
-    seq2pdb = seq2pdb_map[prot]
-    preds    = [(seq2pdb[i], seq2pdb[j], s)
-                for i,j,s in raw_preds
-                if i in seq2pdb and j in seq2pdb]
-    ppv, rec, f1 = evaluate_case(preds, native_map[prot])
-    return (prot, ppv, rec, f1)
+#def eval_bench_prot(prot):
+#    """Evaluate layer 5 for a single protein from bench_dir."""
+#    if prot not in native_map:
+#        return None
+#    prot_dir = os.path.join(bench_dir, prot)
+#    path5 = os.path.join(prot_dir, 'pconsc3.l5.out')
+#    if not os.path.exists(path5):
+#        return None
+#
+#    raw_preds = load_predictions(path5)
+#    seq2pdb   = seq2pdb_map[prot]
+#    preds     = [(seq2pdb[i], seq2pdb[j], s)
+#                 for i,j,s in raw_preds
+#                 if i in seq2pdb and j in seq2pdb]
+#    ppv, rec, f1 = evaluate_case(preds, native_map[prot])
+#    return (prot, ppv, rec, f1)
 
 
 def main(input_dir):
@@ -212,8 +213,10 @@ def main(input_dir):
             sys.exit(1)
 
     # load native contacts and length for each protein once
+    start_all = time.perf_counter()
     native_map = {}
     length_map = {}
+    t0 = time.perf_counter()
     for prot in os.listdir(data_dir):
         pdbs = glob.glob(os.path.join(data_dir, prot, '*.pdb'))
         if not pdbs:
@@ -225,6 +228,8 @@ def main(input_dir):
                 if res.id[0]==' ' and 'CA' in res)
         native_map[prot] = native
         length_map[prot] = L
+    end_all = time.perf_counter()
+    print(f"[Timing] Native‐contact loop: {end_all - t0:.1f}s over {len(native_map)} proteins")
 
     # evaluate results predictions
     # before any loops, after you load native_map & length_map…
@@ -237,6 +242,7 @@ def main(input_dir):
         l5s = glob.glob(os.path.join(prot_dir, '*_output.l5'))
         if not l5s: continue
         from Bio import SeqIO
+
 
         # --- PRECOMPUTE mapping once ---
         fasta_path = os.path.join(data_dir, prot, 'sequence.fa')
@@ -260,8 +266,8 @@ def main(input_dir):
     out1 = os.path.join(project_root, 'results_summary.csv')
     with open(out1,'w',newline='') as f:
         w=csv.writer(f)
-        w.writerow(['Protein','Precision','Recall','F1'])
-        for row in sorted(results_summary): w.writerow([row[0],f"{row[1]:.3f}",f"{row[2]:.3f}",f"{row[3]:.3f}"])
+        w.writerow(['Protein','PPV'])#'Precision','Recall','F1'])
+        for row in sorted(results_summary): w.writerow([row[0],f"{row[1]:.3f}"])#,f"{row[2]:.3f}",f"{row[3]:.3f}"])
     print(f"Wrote {out1}")
 
     # evaluate benchmarkset layers
@@ -296,12 +302,14 @@ def main(input_dir):
     out2 = os.path.join(project_root, 'benchmark_summary.csv')
     with open(out2,'w',newline='') as f:
         w=csv.writer(f)
-        w.writerow(['Protein','Precision','Recall','F1'])
-        for prot, prec, rec, f1 in sorted(bench_summary):
-            w.writerow([prot,f"{prec:.3f}",f"{rec:.3f}",f"{f1:.3f}"])
+        w.writerow(['Protein','PPV'])#'Precision','Recall','F1'])
+        #for prot, prec, rec, f1 in sorted(bench_summary):
+        #    w.writerow([prot,f"{prec:.3f}",f"{rec:.3f}",f"{f1:.3f}"])
+        for row in sorted(results_summary):
+            w.writerow([row[0],f"{row[1]:.3f}"])
 
     print(f"Wrote {out2}")
-
+    print(f"[Timing] Total script up to here: {end_all - start_all:.1f}s")
 if __name__=='__main__':
     if len(sys.argv)!=2:
         print("Usage: python evaluate_all_cases.py <project_root_or_results_or_benchmarkset_dir>")
