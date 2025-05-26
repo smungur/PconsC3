@@ -118,80 +118,59 @@ def load_native_contacts(pdb_path, cutoff=8.0):
                 native.add((pi, pj))
     return native
 
+def parseStats(f):
+    stats = []
+    ff = open(f).readlines()
+    if len(ff) != 6:
+        sys.stderr.write(f + ' has incorrect format!\n')
+        return [-1, -1, -1, -1, -1, -1]
+    for l in ff:
+        stats.append(float(l.split()[-1]))
+    return stats
 
 
 
-def evaluate_case(preds, native):
+def evaluate_ppv(preds, native):
     """
     preds   : list of tuples (i, j, score) from your predictions
     native  : set of tuples (i, j) of true contacts extracted from the PDB
-    L       : sequence length (number of residues)
+    Returns: ppv = TP / (TP+FP)
     """
+    # 1) Filter out too‐short‐range (|i–j|<5)
+    candidates = [(i,j,s) for (i,j,s) in preds if abs(i-j) >= MIN_SEQ_SEP]
 
-    # 1) Filter out pairs too close in sequence (|i – j| < 5) per §2.5
-    candidates = [(i, j, s) for (i, j, s) in preds if abs(i - j) >= 5]
-
-    # 2) Sort predictions by descending score
+    # 2) Sort descending by score
     candidates.sort(key=lambda x: x[2], reverse=True)
 
-    # 3) Determine N = number of true contacts
+    # 3) N = # native contacts
     N = len(native)
 
-    # 4) Select the top N predictions (top-ranked contacts)
-    top_preds = candidates[:N]
+    # 4) Top-N predictions
+    top = candidates[:N]
 
-    # 5) Build the set of predicted residue pairs
-    pred_pairs = {(i, j) for (i, j, _) in top_preds}
+    # 5) Predicted pairs
+    pred_pairs = {(i,j) for (i,j,_) in top}
 
-    # 6) Count true positives, false positives, false negatives
+    # 6) True/false positives
     TP = len(pred_pairs & native)
     FP = len(pred_pairs - native)
-    FN = len(native - pred_pairs)
 
-    # 7) Compute metrics as defined in §2.6
-    precision = TP / (TP + FP) if (TP + FP) > 0 else 0.0
-    recall    = TP / (TP + FN) if (TP + FN) > 0 else 0.0
-    f1        = (2 * precision * recall / (precision + recall)
-                 if (precision + recall) > 0 else 0.0)
+    # 7) PPV
+    ppv = TP / (TP + FP) if (TP + FP) > 0 else 0.0
+    return ppv
 
-    return precision, recall, f1
 
-#def eval_result_prot(prot):
-#    """Evaluate a single protein from results_dir."""
-#    if prot not in native_map:
-#        return None
-#    prot_dir = os.path.join(results_dir, prot)
-#    l5s = glob.glob(os.path.join(prot_dir, '*_output.l5'))
-#    if not l5s:
-#        return None
-#
-#    # load raw preds
-#    raw_preds = load_predictions(l5s[0])
-#
-#    # remap & eval
-#    seq2pdb = seq2pdb_map[prot]
-#    preds   = [(seq2pdb[i], seq2pdb[j], s)
-#               for i,j,s in raw_preds
-#               if i in seq2pdb and j in seq2pdb]
-#    ppv, rec, f1 = evaluate_case(preds, native_map[prot])
-#    return (prot, ppv, rec, f1)
+import subprocess
 
-#def eval_bench_prot(prot):
-#    """Evaluate layer 5 for a single protein from bench_dir."""
-#    if prot not in native_map:
-#        return None
-#    prot_dir = os.path.join(bench_dir, prot)
-#    path5 = os.path.join(prot_dir, 'pconsc3.l5.out')
-#    if not os.path.exists(path5):
-#        return None
-#
-#    raw_preds = load_predictions(path5)
-#    seq2pdb   = seq2pdb_map[prot]
-#    preds     = [(seq2pdb[i], seq2pdb[j], s)
-#                 for i,j,s in raw_preds
-#                 if i in seq2pdb and j in seq2pdb]
-#    ppv, rec, f1 = evaluate_case(preds, native_map[prot])
-#    return (prot, ppv, rec, f1)
+def compute_tmscore(native_pdb, model_pdb):
+    """Run TMscore and return the TM-score (float)."""
+    cmd = ['TMscore', model_pdb, native_pdb]
+    out = subprocess.check_output(cmd).decode()
+    for line in out.splitlines():
+        if line.startswith('TM-score='):
+            # ex: "TM-score=0.512  TM-score normalized by length of structure A"
+            return float(line.split('=')[1].split()[0])
+    return None
 
 
 def main(input_dir):
@@ -230,11 +209,13 @@ def main(input_dir):
         length_map[prot] = L
     end_all = time.perf_counter()
     print(f"[Timing] Native‐contact loop: {end_all - t0:.1f}s over {len(native_map)} proteins")
+    #print(f"[Timing] Total script up to here: {end_all - start_all:.1f}s")
 
     # evaluate results predictions
     # before any loops, after you load native_map & length_map…
     results_summary = []
     seq2pdb_map = {}
+    stats_map = {}
     for prot in os.listdir(results_dir):
         prot_dir = os.path.join(results_dir, prot)
         if not os.path.isdir(prot_dir) or prot not in native_map:
@@ -242,7 +223,12 @@ def main(input_dir):
         l5s = glob.glob(os.path.join(prot_dir, '*_output.l5'))
         if not l5s: continue
         from Bio import SeqIO
-
+        
+        st_file = os.path.join(data_dir, prot, 'alignment.stats')
+        if os.path.exists(st_file):
+            stats = parseStats(st_file)
+            beff = stats[3]
+            stats_map[prot] = beff
 
         # --- PRECOMPUTE mapping once ---
         fasta_path = os.path.join(data_dir, prot, 'sequence.fa')
@@ -250,9 +236,9 @@ def main(input_dir):
         seq2pdb_map[prot]     = build_seq2pdb(fasta_path, pdb_file)
         
         # Load, remap & evaluate in one pass
-        l5s = glob.glob(os.path.join(prot_dir, '*_output.l5'))
-        if not l5s:
-            continue
+#        l5s = glob.glob(os.path.join(prot_dir, '*_output.l5'))
+#        if not l5s:
+#            continue
         raw_preds = load_predictions(l5s[0])
         seq2pdb = seq2pdb_map[prot]
         preds = [
@@ -260,25 +246,47 @@ def main(input_dir):
             for i,j,s in raw_preds
             if i in seq2pdb and j in seq2pdb
         ]
-        prec, rec, f1 = evaluate_case(preds, native_map[prot])
-        results_summary.append((prot, prec, rec, f1))
+        ppv = evaluate_ppv(preds, native_map[prot])
+        L   = length_map[prot]
+        beff = stats_map.get(prot, None)
+#        if os.path.exists(model_pdb):
+##            tm = compute_tmscore(
+##                os.path.join(data_dir, prot, f'{prot}.pdb'),
+##            )
+#        else:
+#            tm = ''
+        tm = 0
+        results_summary.append((prot, ppv, beff, L, tm))
     # write results_summary.csv
     out1 = os.path.join(project_root, 'results_summary.csv')
     with open(out1,'w',newline='') as f:
         w=csv.writer(f)
-        w.writerow(['Protein','PPV'])#'Precision','Recall','F1'])
-        for row in sorted(results_summary): w.writerow([row[0],f"{row[1]:.3f}"])#,f"{row[2]:.3f}",f"{row[3]:.3f}"])
+        w.writerow(['Protein','PPV','Beff','Length','TMscore'])
+        for prot, ppv, beff, L, tm in sorted(results_summary):
+            w.writerow([
+                prot,
+                f"{ppv:.3f}",
+                f"{beff:.1f}",
+                f"{L:d}",
+                f"{tm:.3f}" if tm is not None else ''
+            ])
     print(f"Wrote {out1}")
 
     # evaluate benchmarkset layers
     bench_summary = []
     # before any loops, after you load native_map & length_map…
     seq2pdb_map = {}
+    stats_map = {}
     for prot in os.listdir(bench_dir):
         prot_dir = os.path.join(bench_dir, prot)
         if not os.path.isdir(prot_dir) or prot not in native_map:
             continue
-
+        st_file = os.path.join(data_dir, prot, 'alignment.stats')
+        if os.path.exists(st_file):
+            stats = parseStats(st_file)
+            beff = stats[3]
+            stats_map[prot] = beff
+        
         # --- PRECOMPUTE per-protein mapping and raw preds by layer ---
         fasta_path = os.path.join(data_dir, prot, 'sequence.fa')
         pdb_file   = glob.glob(os.path.join(data_dir, prot, '*.pdb'))[0]
@@ -294,22 +302,35 @@ def main(input_dir):
                 for i, j, s in raw_preds
                 if i in seq2pdb and j in seq2pdb
             ]
-            prec, rec, f1 = evaluate_case(preds, native_map[prot])
-            bench_summary.append((prot, prec, rec, f1))
+            ppv = evaluate_ppv(preds, native_map[prot])
+            L   = length_map[prot]
+            beff = stats_map.get(prot, None)
+#            if os.path.exists(model_pdb):
+#                tm = compute_tmscore(
+#                    os.path.join(data_dir, prot, f'{prot}.pdb'),
+#                    model_pdb
+#                )
+#            else:
+#                tm = ''
+            tm = 0
+            bench_summary.append((prot, ppv, beff, L, tm))
         else:
             print(f"Warning: missing layer 5 for {prot}")
     # write benchmark_summary.csv
     out2 = os.path.join(project_root, 'benchmark_summary.csv')
     with open(out2,'w',newline='') as f:
         w=csv.writer(f)
-        w.writerow(['Protein','PPV'])#'Precision','Recall','F1'])
-        #for prot, prec, rec, f1 in sorted(bench_summary):
-        #    w.writerow([prot,f"{prec:.3f}",f"{rec:.3f}",f"{f1:.3f}"])
-        for row in sorted(results_summary):
-            w.writerow([row[0],f"{row[1]:.3f}"])
+        w.writerow(['Protein','PPV','Beff','Length','TMscore'])
+        for prot, ppv, beff, L, tm in sorted(bench_summary):
+            w.writerow([
+                prot,
+                f"{ppv:.3f}",
+                f"{beff:.1f}",
+                f"{L:d}",
+                f"{tm:.3f}" if tm is not None else ''
+            ])
 
     print(f"Wrote {out2}")
-    print(f"[Timing] Total script up to here: {end_all - start_all:.1f}s")
 if __name__=='__main__':
     if len(sys.argv)!=2:
         print("Usage: python evaluate_all_cases.py <project_root_or_results_or_benchmarkset_dir>")
