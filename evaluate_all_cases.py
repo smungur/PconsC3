@@ -255,21 +255,26 @@ def main(input_dir):
        # ppv = evaluate_ppv(preds, native_map[prot])
        # L   = length_map[prot]
        # beff = stats_map.get(prot, None)
-        ppv = evaluate_ppv(preds, native_map[prot], top_fraction=2.0, seq_length=L)
-        ppv_lr = compute_ppv_long(preds, native_map[prot], top_fraction=2.0, seq_length=L)
-        results_summary.append((prot, ppv, ppv_lr, beff, L))
+#        ppv = evaluate_ppv(preds, native_map[prot], top_fraction=2.0, seq_length=L)
+#        ppv_lr = compute_ppv_long(preds, native_map[prot], top_fraction=2.0, seq_length=L)
+#        results_summary.append((prot, ppv, ppv_lr, beff, L))
+        ppv = evaluate_ppv(preds, native_map[prot], top_fraction=2.0)
+        ppv_lr = compute_ppv_long(preds, native_map[prot], top_fraction=2.0)
+        results_summary.append((prot, ppv, ppv_lr, beff))
     # write results_summary.csv
     out1 = os.path.join(project_root, 'results_summary.csv')
     with open(out1,'w',newline='') as f:
         w=csv.writer(f)
-        w.writerow(['Protein','PPV', 'PPV_long','Beff','Length'])
-        for prot, ppv,ppv_lr, beff, L in sorted(results_summary):
+        #w.writerow(['Protein','PPV', 'PPV_long','Beff','Length'])
+        #for prot, ppv,ppv_lr, beff, L in sorted(results_summary):
+        w.writerow(['Protein','PPV', 'PPV_long','Beff'])
+        for prot, ppv,ppv_lr, beff in sorted(results_summary):
             w.writerow([
                 prot,
                 f"{ppv:.3f}",
                 f"{ppv_lr:.3f}",
                 f"{beff:.1f}",
-                 str(int(L)),
+               #  str(int(L)),
             ])
     print(f"Wrote {out1}")
 
@@ -286,8 +291,7 @@ def main(input_dir):
         if os.path.exists(st_file):
             stats = parseStats(st_file)
             beff = stats[3]
-            L = stats[0]
-          #  stats_map[prot] = beff
+          #  L = stats[0]
         
         # --- PRECOMPUTE per-protein mapping and raw preds by layer ---
         fasta_path = os.path.join(data_dir, prot, 'sequence.fa')
@@ -304,24 +308,29 @@ def main(input_dir):
                 for i, j, s in raw_preds
                 if i in seq2pdb and j in seq2pdb
             ]
-            ppv = evaluate_ppv(preds, native_map[prot], top_fraction=2.0, seq_length=L)
-            ppv_lr = compute_ppv_long(preds, native_map[prot], top_fraction=2.0, seq_length=L)
+#            ppv = evaluate_ppv(preds, native_map[prot], top_fraction=2.0, seq_length=L)
+#            ppv_lr = compute_ppv_long(preds, native_map[prot], top_fraction=2.0, seq_length=L)
+           # bench_summary.append((prot, ppv, ppv_lr, beff, L))
+            ppv = evaluate_ppv(preds, native_map[prot], top_fraction=2.0)
+            ppv_lr = compute_ppv_long(preds, native_map[prot], top_fraction=2.0)
             
-            bench_summary.append((prot, ppv, ppv_lr, beff, L))
+            bench_summary.append((prot, ppv, ppv_lr, beff))
         else:
             print(f"Warning: missing layer 5 for {prot}")
     # write benchmark_summary.csv
     out2 = os.path.join(project_root, 'benchmark_summary.csv')
     with open(out2,'w',newline='') as f:
         w=csv.writer(f)
-        w.writerow(['Protein','PPV','PPV_long','Beff','Length'])
-        for prot, ppv,ppv_lr, beff, L in sorted(bench_summary):
+      #  w.writerow(['Protein','PPV','PPV_long','Beff','Length'])
+        #for prot, ppv,ppv_lr, beff, L in sorted(bench_summary):
+        w.writerow(['Protein','PPV','PPV_long','Beff'])
+        for prot, ppv,ppv_lr, beff in sorted(bench_summary):
             w.writerow([
                 prot,
                 f"{ppv:.3f}",
                 f"{ppv_lr:.3f}",
                 f"{beff:.1f}",
-                str(int(L)),
+            #    str(int(L)),
             ])
 
     print(f"Wrote {out2}")
