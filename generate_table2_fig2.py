@@ -1,5 +1,9 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import os
+
+OUTPUT_DIR = "figures_and_tables"
+os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # 1) Load the two CSVs
 res = pd.read_csv("results_with_class.csv")
@@ -14,7 +18,8 @@ table2 = (
 )
 print("Table 2 – Average PPV₂ by structural class")
 print(table2.to_string(index=False))
-table2.to_csv("table2_average_ppv2_by_class.csv", index=False)
+table2.to_csv(os.path.join(OUTPUT_DIR, "table2_average_ppv2_by_class.csv"), index=False)
+
 
 
 # 3) Figure 2a: PPV₂ vs Beff on your 210‐protein benchmark (results)
@@ -29,7 +34,8 @@ r = res.sort_values("Beff")
 r["PPV_smooth"] = r["PPV"].rolling(30, center=True).mean()
 plt.plot(r["Beff"], r["PPV_smooth"], color="black", lw=2)
 plt.tight_layout()
-plt.savefig("Figure2a_benchmark_ppv2_vs_beff.png", dpi=300)
+plt.savefig(os.path.join(OUTPUT_DIR, "Figure2a_benchmark_ppv2_vs_beff.png"), dpi=300)
+
 plt.show()
 
 
@@ -45,4 +51,5 @@ b = bench.sort_values("Beff")
 b["PPV_smooth"] = b["PPV"].rolling(500, center=True).mean()
 plt.plot(b["Beff"], b["PPV_smooth"], color="black", lw=2)
 plt.tight_layout()
+plt.savefig(os.path.join(OUTPUT_DIR, "Figure2b_Pfam_ppv2_vs_beff.png"), dpi=300)
 plt.show()

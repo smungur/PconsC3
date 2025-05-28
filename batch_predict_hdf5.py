@@ -12,7 +12,7 @@ def count_sequences(a3m_path):
         print(f"[ERROR] Cannot count sequences in {a3m_path}: {e}")
         return 0
 
-# Liste des noms d'identifiants à traiter
+# List of identifier names to process
 names = [name for name in os.listdir("data") if os.path.isdir(os.path.join("data", name))]
 
 for name in sorted(names):
@@ -22,15 +22,15 @@ for name in sorted(names):
     base_dir = os.path.join("data", name)
     files = {
         "gdca": os.path.join(base_dir, "gdca.out"),
-        "plm": os.path.join(base_dir, "plmdca_parsed.out"),
-        "cmap": os.path.join(base_dir, "phycmap_parsed.out"),
+        "plm": os.path.join(base_dir, "plmdca.out"),
+        "cmap": os.path.join(base_dir, "phycmap.out"),
         "netsurf": os.path.join(base_dir, "netsurf.out"),
         "ss2": os.path.join(base_dir, "psipred.ss2"),
         "stats": os.path.join(base_dir, "alignment.stats"),
         "a3m": os.path.join(base_dir, "alignment.a3m")
     }
 
-    # Vérification des fichiers requis
+    # Checking required files
     missing = False
     for key, path in files.items():
         if not os.path.exists(path):
@@ -39,13 +39,13 @@ for name in sorted(names):
     if missing:
         continue
 
-    # Vérification du nombre de séquences
+    # Checking the number of sequences
     seq_count = count_sequences(files["a3m"])
     if seq_count < 10:
         print(f"[SKIP] {name}: only {seq_count} sequences in alignment")
         continue
 
-    # Préparation du dossier de sortie
+    # Preparation of the exit file
     out_dir = os.path.join("results", name)
     os.makedirs(out_dir, exist_ok=True)
     output_path = os.path.join(out_dir, f"{name}_output")
@@ -60,10 +60,10 @@ for name in sorted(names):
         files["ss2"],
         files["stats"],
         files["a3m"],
-        "/app",  # ou autre répertoire de travail
-        "0",     # ID ? à ajuster si vous avez du parallélisme
+        "/app",  # or other working directory
+        "0",     # ID? to ​​adjust if you have parallelism
         output_path,
-        "4"      # paramètre final du script (index ou worker ?)
+        "4"      # final parameter of the script (index or worker?)
     ]
 
     # Exécution
