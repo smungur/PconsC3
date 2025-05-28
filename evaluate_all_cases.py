@@ -12,7 +12,7 @@ import time
 
 # Parameters: minimum sequence separation and fraction of top contacts to evaluate
 MIN_SEQ_SEP = 5      # we follow |i-j| ≥ 5 as in the article
-TOP_FRACTION = 0.2   # default: use top L/5 contacts for evaluation
+#TOP_FRACTION = 0.2   # default: use top L/5 contacts for evaluation
 
 aligner = PairwiseAligner()
 aligner.mode = "global"
@@ -129,48 +129,53 @@ def parseStats(f):
     return stats
 
 
+def compute_ppv_long(preds, native, sep=24, top_fraction=2.0, seq_length=None):
+    cand = [(i,j,s) for (i,j,s) in preds if abs(i-j) >= sep]
+    cand.sort(key=lambda x: x[2], reverse=True)
+    if seq_length is None:
+        L = max(max(i, j) for (i, j, _) in preds)
+    else:
+        L = seq_length
+    N = int(top_fraction * L)
+    top = cand[:N]
+    tp = sum((i,j) in native for i,j,_ in top)
+    fp = len(top) - tp
+    return tp / (tp + fp) if tp + fp > 0 else 0.0
 
-def evaluate_ppv(preds, native):
+def evaluate_ppv(preds, native, top_fraction=2.0, seq_length=None):
     """
-    preds   : list of tuples (i, j, score) from your predictions
-    native  : set of tuples (i, j) of true contacts extracted from the PDB
-    Returns: ppv = TP / (TP+FP)
+    preds         : list of (i, j, score)
+    native        : set of (i, j) true contacts
+    top_fraction  : float, multiply by L to get N
+    seq_length    : int, length of the sequence (optional)
+    returns       : ppv (float)
     """
-    # 1) Filter out too‐short‐range (|i–j|<5)
-    candidates = [(i,j,s) for (i,j,s) in preds if abs(i-j) >= MIN_SEQ_SEP]
-
-    # 2) Sort descending by score
+    # 1) drop short‐range
+    candidates = [(i,j,s) for i,j,s in preds if abs(i-j) >= MIN_SEQ_SEP]
+    # 2) sort by score desc
     candidates.sort(key=lambda x: x[2], reverse=True)
 
-    # 3) N = # native contacts
-    N = len(native)
+    # 3) get L, the seq length
+    if seq_length is None:
+        # fallback: approximate L as the highest residue index seen
+        L = max(max(i,j) for i,j,_ in preds)
+    else:
+        L = seq_length
 
-    # 4) Top-N predictions
-    top = candidates[:N]
+    # 4) compute N = top_fraction × L
+    N = int(top_fraction * L)
 
-    # 5) Predicted pairs
-    pred_pairs = {(i,j) for (i,j,_) in top}
+    # 5) take the top N
+    top_preds = candidates[:N]
+    pred_pairs = {(i,j) for i,j,_ in top_preds}
 
-    # 6) True/false positives
+    # 6) compute TP & FP
     TP = len(pred_pairs & native)
     FP = len(pred_pairs - native)
 
     # 7) PPV
-    ppv = TP / (TP + FP) if (TP + FP) > 0 else 0.0
+    ppv = TP / (TP + FP) if (TP + FP) else 0.0
     return ppv
-
-
-import subprocess
-
-def compute_tmscore(native_pdb, model_pdb):
-    """Run TMscore and return the TM-score (float)."""
-    cmd = ['TMscore', model_pdb, native_pdb]
-    out = subprocess.check_output(cmd).decode()
-    for line in out.splitlines():
-        if line.startswith('TM-score='):
-            # ex: "TM-score=0.512  TM-score normalized by length of structure A"
-            return float(line.split('=')[1].split()[0])
-    return None
 
 
 def main(input_dir):
@@ -228,7 +233,8 @@ def main(input_dir):
         if os.path.exists(st_file):
             stats = parseStats(st_file)
             beff = stats[3]
-            stats_map[prot] = beff
+            L = stats[0]
+            #stats_map[prot] = beff
 
         # --- PRECOMPUTE mapping once ---
         fasta_path = os.path.join(data_dir, prot, 'sequence.fa')
@@ -246,29 +252,24 @@ def main(input_dir):
             for i,j,s in raw_preds
             if i in seq2pdb and j in seq2pdb
         ]
-        ppv = evaluate_ppv(preds, native_map[prot])
-        L   = length_map[prot]
-        beff = stats_map.get(prot, None)
-#        if os.path.exists(model_pdb):
-##            tm = compute_tmscore(
-##                os.path.join(data_dir, prot, f'{prot}.pdb'),
-##            )
-#        else:
-#            tm = ''
-        tm = 0
-        results_summary.append((prot, ppv, beff, L, tm))
+       # ppv = evaluate_ppv(preds, native_map[prot])
+       # L   = length_map[prot]
+       # beff = stats_map.get(prot, None)
+        ppv = evaluate_ppv(preds, native_map[prot], top_fraction=2.0, seq_length=L)
+        ppv_lr = compute_ppv_long(preds, native_map[prot], top_fraction=2.0, seq_length=L)
+        results_summary.append((prot, ppv, ppv_lr, beff, L))
     # write results_summary.csv
     out1 = os.path.join(project_root, 'results_summary.csv')
     with open(out1,'w',newline='') as f:
         w=csv.writer(f)
-        w.writerow(['Protein','PPV','Beff','Length','TMscore'])
-        for prot, ppv, beff, L, tm in sorted(results_summary):
+        w.writerow(['Protein','PPV', 'PPV_long','Beff','Length'])
+        for prot, ppv,ppv_lr, beff, L in sorted(results_summary):
             w.writerow([
                 prot,
                 f"{ppv:.3f}",
+                f"{ppv_lr:.3f}",
                 f"{beff:.1f}",
-                f"{L:d}",
-                f"{tm:.3f}" if tm is not None else ''
+                 str(int(L)),
             ])
     print(f"Wrote {out1}")
 
@@ -285,7 +286,8 @@ def main(input_dir):
         if os.path.exists(st_file):
             stats = parseStats(st_file)
             beff = stats[3]
-            stats_map[prot] = beff
+            L = stats[0]
+          #  stats_map[prot] = beff
         
         # --- PRECOMPUTE per-protein mapping and raw preds by layer ---
         fasta_path = os.path.join(data_dir, prot, 'sequence.fa')
@@ -302,32 +304,24 @@ def main(input_dir):
                 for i, j, s in raw_preds
                 if i in seq2pdb and j in seq2pdb
             ]
-            ppv = evaluate_ppv(preds, native_map[prot])
-            L   = length_map[prot]
-            beff = stats_map.get(prot, None)
-#            if os.path.exists(model_pdb):
-#                tm = compute_tmscore(
-#                    os.path.join(data_dir, prot, f'{prot}.pdb'),
-#                    model_pdb
-#                )
-#            else:
-#                tm = ''
-            tm = 0
-            bench_summary.append((prot, ppv, beff, L, tm))
+            ppv = evaluate_ppv(preds, native_map[prot], top_fraction=2.0, seq_length=L)
+            ppv_lr = compute_ppv_long(preds, native_map[prot], top_fraction=2.0, seq_length=L)
+            
+            bench_summary.append((prot, ppv, ppv_lr, beff, L))
         else:
             print(f"Warning: missing layer 5 for {prot}")
     # write benchmark_summary.csv
     out2 = os.path.join(project_root, 'benchmark_summary.csv')
     with open(out2,'w',newline='') as f:
         w=csv.writer(f)
-        w.writerow(['Protein','PPV','Beff','Length','TMscore'])
-        for prot, ppv, beff, L, tm in sorted(bench_summary):
+        w.writerow(['Protein','PPV','PPV_long','Beff','Length'])
+        for prot, ppv,ppv_lr, beff, L in sorted(bench_summary):
             w.writerow([
                 prot,
                 f"{ppv:.3f}",
+                f"{ppv_lr:.3f}",
                 f"{beff:.1f}",
-                f"{L:d}",
-                f"{tm:.3f}" if tm is not None else ''
+                str(int(L)),
             ])
 
     print(f"Wrote {out2}")
