@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
+# This code was developed with the assistance of ChatGPT-4o (OpenAI)
+
 import os
 import glob
 import csv
 from Bio import SeqIO
 
-PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 DATA_DIR     = os.path.join(PROJECT_ROOT, "data")
+CSV_DIR      = os.path.join(PROJECT_ROOT, "csv")
+
 
 def count_family_size(aln_path):
     """Count sequences in the given FASTA/A3M file."""
@@ -40,10 +44,10 @@ def enrich_csv(in_csv, out_csv):
 if __name__ == "__main__":
     # adjust these filenames if yours differ
     enrich_csv(
-        os.path.join(PROJECT_ROOT, "results_summary.csv"),
-        os.path.join(PROJECT_ROOT, "results_summary.csv")
+        os.path.join(CSV_DIR, "results_summary.csv"),
+        os.path.join(CSV_DIR, "results_summary_with_size.csv")
     )
     enrich_csv(
-        os.path.join(PROJECT_ROOT, "benchmark_summary.csv"),
-        os.path.join(PROJECT_ROOT, "benchmark_summary.csv")
+        os.path.join(CSV_DIR, "benchmark_summary.csv"),
+        os.path.join(CSV_DIR, "benchmark_summary_with_size.csv")
     )
