@@ -256,16 +256,16 @@ This setting avoids memory issues on large proteins like 1C9YA, and is also the 
  
  ## 📊 1. Evaluate prediction performance (PPV, Beff, etc.)
     Run the following script to evaluate predictions from both `results/` and `benchmarkset/`:
-    ```bash
-    python3 scripts/evaluate_all_cases.py
-    ```
-    This generates two CSV files inside the `csv/` directory:
-        - `results_summary.csv`
-        - `benchmark_summary.csv`
-    Each file includes:
-        - `PPV`: precision for top L×2 contacts,
-          - `PPV_long`: precision for long-range contacts (|i−j| ≥ 24),
-          - `B_eff` effective number of sequences (at 90% identity threshold).
+```bash
+python3 scripts/evaluate_all_cases.py
+```
+This generates two CSV files inside the `csv/` directory:
+- `results_summary.csv`
+- `benchmark_summary.csv`
+Each file includes:
+- `PPV`: precision for top L×2 contacts,
+- `PPV_long`: precision for long-range contacts (|i−j| ≥ 24),
+- `B_eff` effective number of sequences (at 90% identity threshold).
           
 ## 👥 2. Add family size (number of aligned sequences)
 To compute and append the raw family size for each protein:
