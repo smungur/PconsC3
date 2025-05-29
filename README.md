@@ -12,7 +12,6 @@ If you use PconsC3 please cite:
 ## 📑 Table of Contents
 - PconsC3
     - 📑 Table of Contents
-- Prerequisites
 - 📂 Dataset Structure
     - 📁 Access to Required Model Files
         - 📁 Access PconsC3 model files on Google Drive
@@ -33,19 +32,6 @@ If you use PconsC3 please cite:
     - 📄 Model Download and Preparation
     - 📄 Batch Processing
     - 📄 Other Files
-
-# Prerequisites
-
-* h5py and cython if you want to use the parallel version with hdf5 support (**highly recommended** even for non-parallel usage, see **Parallel version** below.)
-* Julia interpreter (ver. 0.3 and up is supported). Present in most Linux repositories (Ubuntu , otherwise download it from [Julia](http://julialang.org/) website.
-* Python interpreter (2.7+)
-* CD-HIT. Available in most Linux distributions, otherwise downloadable from [GitHub](https://github.com/weizhongli/cdhit)
-* A way to generate multiple sequence alignments (or a FASTA formatted MSA).
-* A way to generate PSIPRED-like secondary structure predictions
-* A way to generate NetSurfP-like solvent accessibility predictions
-* An external source of contact information (e.g. PhyCMAP, CMAPpro...), capable of producing contact estimates in CASP RR format
-
-If Julia, Python and CD-HIT are in your search path, you are set to go. Otherwise, you need to either add them to the path, or modify the necessary scripts.
 
 # 📂 Dataset Structure
 
@@ -261,50 +247,43 @@ In `predict-parallel-hdf5.py`, make sure the following line is set:
 treefraction = 0.3
 ```
 This setting avoids memory issues on large proteins like 1C9YA, and is also the recommended default from the original PconsC3 repository.
+
+## Files on which the program does not work
+ predict-parallel-hdf5.py works on 1XQFA, with treefraction = 0.2.
+ It does not work on: 2FEEB, 3PJZA, 3QE7A and 3QNQA
  
- ## ✅ Evaluate all results
- Once all predictions are done, run:
-```bash
-python3 evaluate_all_cases.py
+# ✅ Evaluation of the results
+ 
+ ## 📊 1. Evaluate prediction performance (PPV, Beff, etc.)
+    Run the following script to evaluate predictions from both `results/` and `benchmarkset/`:
+    ```bash
+    python3 scripts/evaluate_all_cases.py
+    ```
+    This generates two CSV files inside the `csv/` directory:
+        - `results_summary.csv`
+        - `benchmark_summary.csv`
+    Each file includes:
+        - `PPV`: precision for top L×2 contacts,
+          - `PPV_long`: precision for long-range contacts (|i−j| ≥ 24),
+          - `B_eff` effective number of sequences (at 90% identity threshold).
+          
+## 👥 2. Add family size (number of aligned sequences)
+To compute and append the raw family size for each protein:
+ ```bash
+    python3 scripts/count_family_size.py
 ```
-This script computes **Precision**, **Recall**, **F1-score**, and other metrics for each protein, and outputs a summary file:
-```bash
-results_summary.csv
+This adds the `FamilySize` column to both `results_summary.csv` and `benchmark_summary.csv`.
+
+##🧬 3. Annotate secondary structure from ECOD
+To assign secondary structure classes based on ECOD domain annotations:
+ ```bash
+    python3 scripts/annotate_secondary_structure.py
 ```
+This script adds two new columns:
+    - `secondary_structure_majority`: most common structure (α, β, αβ…),
+    -  `domains_diff_architecture`: `True` if domains have mixed architectures.
+Let me know if you'd like me to directly apply this to your `README.md` file and send you the updated version.
     
-# Parallel version and HDF5 support (recommended, even for non-parallel usage)
-
-The parallel version with HDF5 support drastically reduces IO and computation time, while not changing the output in any way. To set it up make sure h5py and Cython are in your PYTHONPATH. You can install the packages via pip:
-
-```
-pip install h5py
-pip install Cython
-```
-
-Then you need to convert the forest data in your PconsC3 root directory into HDF5-files:
-
-```
-cd <PconsC3 root directory>
-python convert_to_hdf5.py .
-```
-
-After successful conversion you can safely remove the folders containing the forest data:
-
-```
-find tlayer* ! -name '*.hdf5' -type d -exec rm -r {} +
-```
-
-And finally compile the Cython script:
-
-```
-python setup.py build_ext -i
-```
-
-After that you can run the fast version of PconsC3:
-
-```
-./predict-parallel-hdf5.py myprotein.gdca myprotein.0.02.plm20 external.RR netsurf.rsa psipred.ss2 myprotein.stats myprotein.fas outputfile [NumberThreads]
-```
 
 # Making PconsC3 run faster
 
@@ -322,7 +301,8 @@ This section provides an overview of the main files and folders in the project, 
 - `data/`: Contains the input files for the 210 protein domains used in the benchmark dataset.
 - `results/`: Output directory for predictions. For each protein, a subfolder contains the corresponding prediction files.
 - `benchmarkset/`: Auxiliary data for benchmarking (usage depends on scripts like `evaluate_all_cases.py`).
-
+- 'csv/': Contains benchmark_summary et results_summary.csv, which contains information about the folder `benchmarkset/` and `results/`.
+- 'scripts/': Contains scripts which generate and manipulate the csv files, in the folder 'csv/'
 ---
 
 ## 📄 Prediction Scripts
@@ -330,6 +310,7 @@ This section provides an overview of the main files and folders in the project, 
 - `predict.py`: Basic prediction script (single-threaded).
 - `predict-parallel.py`: Parallel prediction using the Cython module `_predict_parallel.pyx`.
 - `predict-parallel-hdf5.py`: Parallel + HDF5-based version (also uses `_predict_parallel.pyx`) — most efficient for large proteins.
+- `_predict_parallel.pyx`: script called by 
 
 
 > ⚠️ For large proteins like `1C9YA`, you must set `treefraction = 0.3` in the parallel scripts to avoid memory crashes.
@@ -354,9 +335,12 @@ This section provides an overview of the main files and folders in the project, 
 
 ---
 
+## Results Evaluation
+
+
+___
 ### 📄 Other Files
 
-- `reformat_cameo.py`: Script to reformat contact prediction output into CAMEO-compatible format (optional).
 
 # Help and Support
 
