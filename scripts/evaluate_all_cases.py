@@ -1,3 +1,6 @@
+# This code was developed with the assistance of ChatGPT-4o (OpenAI)
+
+
 import os
 import sys
 import csv
@@ -10,9 +13,9 @@ from Bio.Data.IUPACData import protein_letters_3to1 as _triple2single
 from multiprocessing import Pool
 import time
 
+
 # Parameters: minimum sequence separation and fraction of top contacts to evaluate
 MIN_SEQ_SEP = 5      # we follow |i-j| ≥ 5 as in the article
-#TOP_FRACTION = 0.2   # default: use top L/5 contacts for evaluation
 
 aligner = PairwiseAligner()
 aligner.mode = "global"
@@ -189,6 +192,7 @@ def main(input_dir):
     results_dir = os.path.join(project_root, 'results')
     bench_dir   = os.path.join(project_root, 'benchmarkset')
     data_dir    = os.path.join(project_root, 'data')
+    csv_dir = os.path.join(project_root, 'csv')
 
     # check dirs
     for d in (results_dir, bench_dir, data_dir):
@@ -214,7 +218,6 @@ def main(input_dir):
         length_map[prot] = L
     end_all = time.perf_counter()
     print(f"[Timing] Native‐contact loop: {end_all - t0:.1f}s over {len(native_map)} proteins")
-    #print(f"[Timing] Total script up to here: {end_all - start_all:.1f}s")
 
     # evaluate results predictions
     # before any loops, after you load native_map & length_map…
@@ -242,9 +245,6 @@ def main(input_dir):
         seq2pdb_map[prot]     = build_seq2pdb(fasta_path, pdb_file)
         
         # Load, remap & evaluate in one pass
-#        l5s = glob.glob(os.path.join(prot_dir, '*_output.l5'))
-#        if not l5s:
-#            continue
         raw_preds = load_predictions(l5s[0])
         seq2pdb = seq2pdb_map[prot]
         preds = [
@@ -252,21 +252,14 @@ def main(input_dir):
             for i,j,s in raw_preds
             if i in seq2pdb and j in seq2pdb
         ]
-       # ppv = evaluate_ppv(preds, native_map[prot])
-       # L   = length_map[prot]
-       # beff = stats_map.get(prot, None)
-#        ppv = evaluate_ppv(preds, native_map[prot], top_fraction=2.0, seq_length=L)
-#        ppv_lr = compute_ppv_long(preds, native_map[prot], top_fraction=2.0, seq_length=L)
-#        results_summary.append((prot, ppv, ppv_lr, beff, L))
+
         ppv = evaluate_ppv(preds, native_map[prot], top_fraction=2.0)
         ppv_lr = compute_ppv_long(preds, native_map[prot], top_fraction=2.0)
         results_summary.append((prot, ppv, ppv_lr, beff))
     # write results_summary.csv
-    out1 = os.path.join(project_root, 'results_summary.csv')
+    out1 = os.path.join(csv_dir, 'results_summary.csv')
     with open(out1,'w',newline='') as f:
         w=csv.writer(f)
-        #w.writerow(['Protein','PPV', 'PPV_long','Beff','Length'])
-        #for prot, ppv,ppv_lr, beff, L in sorted(results_summary):
         w.writerow(['Protein','PPV', 'PPV_long','Beff'])
         for prot, ppv,ppv_lr, beff in sorted(results_summary):
             w.writerow([
@@ -274,7 +267,6 @@ def main(input_dir):
                 f"{ppv:.3f}",
                 f"{ppv_lr:.3f}",
                 f"{beff:.1f}",
-               #  str(int(L)),
             ])
     print(f"Wrote {out1}")
 
@@ -291,8 +283,7 @@ def main(input_dir):
         if os.path.exists(st_file):
             stats = parseStats(st_file)
             beff = stats[3]
-          #  L = stats[0]
-        
+            
         # --- PRECOMPUTE per-protein mapping and raw preds by layer ---
         fasta_path = os.path.join(data_dir, prot, 'sequence.fa')
         pdb_file   = glob.glob(os.path.join(data_dir, prot, '*.pdb'))[0]
@@ -308,21 +299,16 @@ def main(input_dir):
                 for i, j, s in raw_preds
                 if i in seq2pdb and j in seq2pdb
             ]
-#            ppv = evaluate_ppv(preds, native_map[prot], top_fraction=2.0, seq_length=L)
-#            ppv_lr = compute_ppv_long(preds, native_map[prot], top_fraction=2.0, seq_length=L)
-           # bench_summary.append((prot, ppv, ppv_lr, beff, L))
+
             ppv = evaluate_ppv(preds, native_map[prot], top_fraction=2.0)
             ppv_lr = compute_ppv_long(preds, native_map[prot], top_fraction=2.0)
-            
             bench_summary.append((prot, ppv, ppv_lr, beff))
         else:
             print(f"Warning: missing layer 5 for {prot}")
     # write benchmark_summary.csv
-    out2 = os.path.join(project_root, 'benchmark_summary.csv')
+    out2 = os.path.join(csv_dir, 'benchmark_summary.csv')
     with open(out2,'w',newline='') as f:
         w=csv.writer(f)
-      #  w.writerow(['Protein','PPV','PPV_long','Beff','Length'])
-        #for prot, ppv,ppv_lr, beff, L in sorted(bench_summary):
         w.writerow(['Protein','PPV','PPV_long','Beff'])
         for prot, ppv,ppv_lr, beff in sorted(bench_summary):
             w.writerow([
@@ -330,7 +316,6 @@ def main(input_dir):
                 f"{ppv:.3f}",
                 f"{ppv_lr:.3f}",
                 f"{beff:.1f}",
-            #    str(int(L)),
             ])
 
     print(f"Wrote {out2}")
