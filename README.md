@@ -274,13 +274,13 @@ To compute and append the raw family size for each protein:
 ```
 This adds the `FamilySize` column to both `results_summary.csv` and `benchmark_summary.csv`.
 
-##🧬 3. Annotate secondary structure from ECOD
+## 🧬 3. Annotate secondary structure from ECOD
 To assign secondary structure classes based on ECOD domain annotations:
  ```bash
     python3 scripts/annotate_secondary_structure.py
 ```
 This script adds two new columns:
-    - `secondary_structure_majority`: most common structure (α, β, αβ…),
+    - `secondary_structure_majority`: most common structure (`α`, `β`, `αβ`, etc.),
     -  `domains_diff_architecture`: `True` if domains have mixed architectures.
 Let me know if you'd like me to directly apply this to your `README.md` file and send you the updated version.
     
