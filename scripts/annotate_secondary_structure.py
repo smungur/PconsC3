@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# This code was developed with the assistance of ChatGPT-4o (OpenAI)
+
 import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.common.by import By
