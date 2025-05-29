@@ -16,7 +16,7 @@ CSV_DIR = os.path.join(PROJECT_ROOT, "csv")
 # === CONFIG ===
 PDB_COLUMN = "Protein"
 benchmark_file = os.path.join(CSV_DIR, "benchmark_summary.csv")
-results_file   = os.path.join(CSV_DIR, "results_summary.csv")
+results_file   = os.path.join(CSV_DIR, "benchmark_summary.csv")
 # === MAPPING FUNCTION ===
 def map_architecture(arch_text):
     arch_text = arch_text.lower()
