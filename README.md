@@ -3,7 +3,13 @@
 Faster, more accurate, and entirely open-source method for predicting residue–residue contacts in proteins.
 
 > 🔄 This version is adapted from the original [PconsC3 implementation](https://github.com/mskwark/PconsC3) by Marcin J. Skwark and collaborators, with extensions for batch evaluation and structure annotation.
+> All original files remain under GPL-2.0; our extensions below are also under GPL-2.0.
 
+---
+
+##  ⚖️ License
+
+This project is released under the GPL-2.0 license. See the [LICENSE](../LICENSE) file for details
 
 ---
 
@@ -24,6 +30,7 @@ If you use **PconsC3**, please cite:
 ## 📑 Table of Contents
 
 - PconsC3
+  -  ⚖️ [License](#-license)
   - 📚 [Citations](#-citations)
   - 📑 Table of Contents 
 - 📂 Dataset Structure  
