@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# This code was developed with the assistance of ChatGPT-4o (OpenAI)
+
 FROM python:3.10-slim
 
 # Installer les outils de compilation

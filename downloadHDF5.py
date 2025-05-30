@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# This code was developed with the assistance of ChatGPT-4o (OpenAI)
+
 import os
 
 # Map of .hdf5 files to their Google Drive file IDs
