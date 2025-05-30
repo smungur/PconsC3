@@ -9,7 +9,7 @@ Faster, more accurate, and entirely open-source method for predicting residue–
 
 ##  ⚖️ License
 
-This project is released under the GPL-2.0 license. See the [LICENSE](../LICENSE) file for details
+This project is released under the GPL-2.0 license. See the [LICENSE](LICENSE) file for details
 
 ---
 
