@@ -53,11 +53,13 @@ If you use **PconsC3**, please cite:
     - 📊 1. Evaluate prediction performance (PPV, Beff, etc.)  
     - 👥 2. Add family size (number of aligned sequences)  
     - 🧬 3. Annotate secondary structure from ECOD  
+- 📈 [Plotting Results](#-plotting-results)
 - 🗂️ [Project Structure and File Usage](#-project-structure-and-file-usage)  
   - 📁 [Key Folders](#-key-folders)  
   - 📄 [Prediction Scripts](#-prediction-scripts)  
   - 📄 [Model Download and Preparation](#-model-download-and-preparation)  
-  - 📄 [Batch Processing](#-batch-processing)  
+  - 📄 [Batch Processing](#-batch-processing)
+  - 📄 [Plotting Results](#-plotting-results)  
 
 
 # 📂 Dataset Structure
@@ -357,6 +359,22 @@ This script uses `selenium` to automate the retrieval of domain annotations from
 > ```
 You will also need to have **ChromeDriver** installed and available in your system `PATH`.
 
+# 📈 Plotting Results
+To visualize and summarize the prediction performance:
+ ```bash
+    python3 plot.py
+```
+## 🔹 What it does:
+* Loads data from `csv/results_summary.csv`
+* Generates scatter plots of:
+    * `PPV` vs. `FamilySize`
+    * `PPV_long` vs. `FamilySize`
+* Colors points by **secondary structure** (`α`, `β`, `αβ`, `etc`.)
+* Prints average PPV values by structure type in the terminal
+
+> 🧪 This script helps to analyze how prediction accuracy varies with protein family size and structure class.
+
+
 # 🗂️ Project Structure and File Usage
 
 This section provides an overview of the main files and folders in the project, and their roles.
@@ -431,6 +449,21 @@ Scripts to compute and enrich evaluation metrics:
 - `annotate_secondary_structure`: Annotates proteins with structural class using ECOD domain info.
     Adds column:
         - `annotate_secondary_structure`
+        
+## 📄 Plotting Results
+
+Script to visualize and summarize evaluation metrics:
+
+- `plot.py`:
+    - Generates comparative plots (e.g., **PPV vs. Family Size**)
+    - Prints text-based tables of overall and per‐category (α, β, αβ, others) averages to the console
+    
+    Input:
+    - `csv/results_summary.csv`
+    
+    Output:
+    - Interactive Matplotlib plots (displayed on screen)  
+    - Summary tables printed to the console 
   
 
 ___
