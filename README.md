@@ -1,37 +1,57 @@
 # PconsC3
 
-Faster, more accurate and entirely open source method for predicting contacts in proteins
+Faster, more accurate, and entirely open-source method for predicting residue–residue contacts in proteins.
 
-> 🔄 This project is adapted from the original [PconsC3 implementation](https://github.com/mskwark/PconsC3) by Marcin J. Skwark and collaborators.
+> 🔄 This version is adapted from the original [PconsC3 implementation](https://github.com/mskwark/PconsC3) by Marcin J. Skwark and collaborators, with extensions for batch evaluation and structure annotation.
 
-If you use PconsC3 please cite:
 
-* Carlo Baldassi, Marco Zamparo, Christoph Feinauer, Andrea Procaccini, Riccardo Zecchina, Martin Weigt and Andrea Pagnani, (2014) PLoS ONE 9(3): e92721. doi:10.1371/journal.pone.0092721
-* Christoph Feinauer, Marcin J. Skwark, Andrea Pagnani, and Erik Aurell. (2014) PLoS Comp Bio: e1003847. doi:10.1371/journal.pcbi.1003847
+---
+
+## 📚 Citations
+
+If you use **PconsC3**, please cite:
+
+- Carlo Baldassi, Marco Zamparo, Christoph Feinauer, Andrea Procaccini, Riccardo Zecchina, Martin Weigt, and Andrea Pagnani.  
+  *PLoS ONE* **9**(3): e92721 (2014).  
+  [https://doi.org/10.1371/journal.pone.0092721](https://doi.org/10.1371/journal.pone.0092721)
+
+- Christoph Feinauer, Marcin J. Skwark, Andrea Pagnani, and Erik Aurell.  
+  *PLoS Computational Biology* **10**(10): e1003847 (2014).  
+  [https://doi.org/10.1371/journal.pcbi.1003847](https://doi.org/10.1371/journal.pcbi.1003847)
+
+---
 
 ## 📑 Table of Contents
+
 - PconsC3
-    - 📑 Table of Contents
-- 📂 Dataset Structure
-    - 📁 Access to Required Model Files
-        - 📁 Access PconsC3 model files on Google Drive
-        - 📦 Automatic download of tree models
-        - 📥 Download Required HDF5 Model Files
-- ▶️ Running PconsC3
-- [🐳 Running with Docker](#-running-with-docker)
-- [🐳 Running the Prediction Inside Docker](#-running-the-prediction-inside-docker)
-- [📊 Running Batch Experiments (Benchmark Evaluation)](#-running-batch-experiments-benchmark-evaluation)
-  - [🧪 Option 1: Run all proteins sequentially](#-option-1-run-all-proteins-sequentially)
-  - [⚡ Option 2: Run in parallel by prefix](#-option-2-run-in-parallel-by-prefix)
-  - [🔄 Check for missing predictions](#-check-for-missing-predictions)
-  - [⚙️ Important – Set treefraction = 03](#️-important--set-treefraction--03)
-  - [✅ Evaluate all results](#-evaluate-all-results)
--  🗂️ Project Structure and File Usage
-    - 📁 Key Folders
-    -  📄 Prediction Scripts
-    - 📄 Model Download and Preparation
-    - 📄 Batch Processing
-    - 📄 Other Files
+  - 📚 [Citations](#-citations)
+  - 📑 Table of Contents 
+- 📂 Dataset Structure  
+  - 📁 [Access to Required Model Files](#-access-to-required-model-files)  
+    - 🔗 [Access PconsC3 model files on Google Drive](#-access-pconsc3-model-files-on-google-drive)  
+    - 📦 [Automatic download of tree models](#-automatic-download-of-tree-models)  
+    - 📥 [Download Required HDF5 Model Files](#-download-required-hdf5-model-files)  
+      - ✅ Recommended: Download via script (outside Docker)  
+      - 🛠️ Alternative: Convert tree models to HDF5 (inside Docker)  
+- ▶️ Running PconsC3  
+  - 🐳 [Running with Docker](#-running-with-docker)  
+    - 🔍 Docker command explained  
+  - 🐳 [Running the Prediction Inside Docker](#-running-the-prediction-inside-docker)  
+- 📊 [Running Batch Experiments (Benchmark Evaluation)](#-running-batch-experiments-benchmark-evaluation)  
+  - 🧪 [Option 1: Run all proteins sequentially](#-option-1-run-all-proteins-sequentially)  
+  - ⚡ [Option 2: Run in parallel by prefix](#-option-2-run-in-parallel-by-prefix)  
+  - 🔄 [Check for missing predictions](#-check-for-missing-predictions)  
+  - ⚙️ [Important – Set treefraction = 0.3](#️-important--set-treefraction--03)  
+  - ✅ [Evaluate all results](#-evaluate-all-results)  
+    - 📊 1. Evaluate prediction performance (PPV, Beff, etc.)  
+    - 👥 2. Add family size (number of aligned sequences)  
+    - 🧬 3. Annotate secondary structure from ECOD  
+- 🗂️ [Project Structure and File Usage](#-project-structure-and-file-usage)  
+  - 📁 [Key Folders](#-key-folders)  
+  - 📄 [Prediction Scripts](#-prediction-scripts)  
+  - 📄 [Model Download and Preparation](#-model-download-and-preparation)  
+  - 📄 [Batch Processing](#-batch-processing)  
+
 
 # 📂 Dataset Structure
 
@@ -54,6 +74,7 @@ netsurf.out
 psipred.ss2
 alignment.stats
 alignment.a3m
+structure.pdb ← (required for evaluation scripts)
 ```
 
 ---
@@ -175,6 +196,13 @@ python3 predict.py \
   results/1AHSC/1AHSC_output
 ```
 
+Where:
+* `data/1AHSC/` contains all required input files for the protein **1AHSC**
+* `/app` is the model directory inside the container
+* `0` refers to the **MaxDepth** parameter
+    * `0` disables tree depth limitation (recommended).
+* `results/1AHSC/1AHSC_output` is the output file prefix
+
 Here are examples of using predict-parallel and predict-parallel-hdf5 where 4 is the number of threads.
 ```bash
 python3 predict-parallel.py \
@@ -205,9 +233,36 @@ python3 predict-parallel-hdf5.py \
   results/1AHSC/1AHSC_output
   4
 ```
+
+Where:
+* `4` is the number of thread
+
+# 🔧 Performance Tip: Adjusting `treefraction`
+
+To speed up prediction and reduce memory usage, you can lower the `treefraction` parameter:
+
+- Default: `treefraction = 1.0`
+- Recommended: `treefraction = 0.3`
+- For large families: even `treefraction = 0.1` can work
+
+Reducing this value decreases the number of decision trees used in prediction (with minimal loss in accuracy).
+
 # 📊 Running Batch Experiments (Benchmark Evaluation)
 
 Once inside the Docker container, you can run large-scale predictions on all proteins in the benchmark.
+
+> ⚠️ **Important:** All scripts inside the `batch/` folder — including `batch_predict_hdf5.py` and `launch_missing_predictions.py` — must be executed **from the project root** (`/app` in Docker):
+>
+> ✅ Correct:
+> ```bash
+> python3 batch/batch_4.py
+> ```
+>
+> ❌ Incorrect:
+> ```bash
+> cd batch
+> python3 batch_4.py  # 🚫 Will fail: cannot locate paths like /app/data
+> ```
 
 ---
 
@@ -216,18 +271,18 @@ Once inside the Docker container, you can run large-scale predictions on all pro
 This method uses a single script to run predictions on every protein found in the `data/` folder:
 
 ```bash
-python3 batch_predict_hdf5.py
+python3 batch/batch_predict_hdf5.py
 ```
 ⏱ **Estimated time**: ~3 to 4 hours (single process)
 
 
 ## ⚡ Option 2: Run in parallel by prefix
-To speed up execution, open **four terminals** (or use a multiplexer like `tmux`) and run:
+To speed up execution, open **four terminals** and run:
 ```bash
-python3 batch_1.py
-python3 batch_2.py
-python3 batch_3.py
-python3 batch_4.py
+python3 batch/batch_1.py
+python3 batch/batch_2.py
+python3 batch/batch_3.py
+python3 batch/batch_4.py
 
 ```
 Each script runs `predict-parallel-hdf5.py` on all proteins whose names start with `1`, `2`, `3`, or `4`.
@@ -235,11 +290,11 @@ Each script runs `predict-parallel-hdf5.py` on all proteins whose names start wi
 ⏱ **Estimated time**: ~1 to 2 hours total (multi-process, parallel)
 
 ## 🔄 Check for missing predictions
-After batch execution, you can recover any failed or missing runs with:
+After batch execution, you can recover any failed or incomplete runs with:
 ```bash
-python3 launch_missing_predictions.py
+python3 batch/launch_missing_predictions.py
 ```
-This script checks `results/<protein>/` for the file `<protein>_output.l5`, and only runs missing ones
+This script checks each folder under `results/` for the presence of the expected output file (`<protein>_output.l5`), and re-runs predictions only for missing cases.
 
 ## Important – Set treefraction = 0.3
 In `predict-parallel-hdf5.py`, make sure the following line is set:
@@ -249,13 +304,13 @@ treefraction = 0.3
 This setting avoids memory issues on large proteins like 1C9YA, and is also the recommended default from the original PconsC3 repository.
 
 ## Files on which the program does not work
- predict-parallel-hdf5.py works on 1XQFA, with treefraction = 0.2.
- It does not work on: 2FEEB, 3PJZA, 3QE7A and 3QNQA
+ predict-parallel-hdf5.py works on `1XQFA`, with treefraction = `0.2`.
+ It does not work on: `2FEEB`, `3PJZA`, `3QE7A` and `3QNQA`
  
 # ✅ Evaluation of the results
  
  ## 📊 1. Evaluate prediction performance (PPV, Beff, etc.)
-    Run the following script to evaluate predictions from both `results/` and `benchmarkset/`:
+Run the following script to evaluate predictions from both `results/` and `benchmarkset/`:
 ```bash
 python3 scripts/evaluate_all_cases.py
 ```
@@ -265,7 +320,9 @@ This generates two CSV files inside the `csv/` directory:
 Each file includes:
 - `PPV`: precision for top L×2 contacts,
 - `PPV_long`: precision for long-range contacts (|i−j| ≥ 24),
-- `B_eff` effective number of sequences (at 90% identity threshold).
+- B<sub>eff</sub> effective number of sequences (at 90% identity threshold).
+
+⏱ **Estimated time**: ~6 to 7 minutes
           
 ## 👥 2. Add family size (number of aligned sequences)
 To compute and append the raw family size for each protein:
@@ -279,18 +336,19 @@ To assign secondary structure classes based on ECOD domain annotations:
  ```bash
     python3 scripts/annotate_secondary_structure.py
 ```
-This script adds two new columns:
-    - `secondary_structure_majority`: most common structure (`α`, `β`, `αβ`, etc.),
-    -  `domains_diff_architecture`: `True` if domains have mixed architectures.
-Let me know if you'd like me to directly apply this to your `README.md` file and send you the updated version.
-    
+This script add one new column:
+- `secondary_structure_majority`: most common structure (`α`, `β`, `αβ`, etc.),
 
-# Making PconsC3 run faster
+⏱ **Estimated time**: ~2 hours total
 
-There are a few parameters in `./predict.py` that can be tweaked, notably:
+This script uses `selenium` to automate the retrieval of domain annotations from the ECOD website.
 
-* `maxtime` -- the maximum time in seconds spent on a single prediction layer (total prediction time will be at most 6x maxtime + time spent on i/o). For the larger proteins setting maxtime too low may result in sub-par performance
-* `treefraction` -- the fraction of trees to be used. While we recommend leaving `treefraction` set to 1., benchmarks have demonstrated satisfactory performance at values as low as `0.3` and for proteins with a lot of sequence information, as low as `0.1`.
+> 🔧 Requirement: Before running the script, install `selenium`:
+> 
+> ```bash
+> pip install selenium
+> ```
+You will also need to have **ChromeDriver** installed and available in your system `PATH`.
 
 # 🗂️ Project Structure and File Usage
 
@@ -298,11 +356,21 @@ This section provides an overview of the main files and folders in the project, 
 
 ## 📁 Key Folders
 
-- `data/`: Contains the input files for the 210 protein domains used in the benchmark dataset.
-- `results/`: Output directory for predictions. For each protein, a subfolder contains the corresponding prediction files.
-- `benchmarkset/`: Auxiliary data for benchmarking (usage depends on scripts like `evaluate_all_cases.py`).
-- 'csv/': Contains benchmark_summary et results_summary.csv, which contains information about the folder `benchmarkset/` and `results/`.
-- 'scripts/': Contains scripts which generate and manipulate the csv files, in the folder 'csv/'
+- `data/`: Contains input files (e.g. alignments, predictions, structure) for the 210 protein domains used in the benchmark.
+
+- `results/`: Stores output predictions. Each subdirectory corresponds to one protein and contains its `.l5` prediction files.
+
+- `benchmarkset/`: Contains reference prediction data used for evaluation (processed similarly to `results/`).
+
+- `csv/`: Contains summary CSV files generated by evaluation scripts:
+  - `results_summary.csv`: Evaluation results for predictions in `results/`
+  - `benchmark_summary.csv`: Evaluation results for predictions in `benchmarkset/`
+
+- `scripts/`: Contains all evaluation and preprocessing scripts that generate and manipulate the CSV files in the `csv/` folder.
+
+- `batch/`: Contains batch processing scripts used to run predictions across many proteins
+
+- 
 ---
 
 ## 📄 Prediction Scripts
@@ -310,7 +378,8 @@ This section provides an overview of the main files and folders in the project, 
 - `predict.py`: Basic prediction script (single-threaded).
 - `predict-parallel.py`: Parallel prediction using the Cython module `_predict_parallel.pyx`.
 - `predict-parallel-hdf5.py`: Parallel + HDF5-based version (also uses `_predict_parallel.pyx`) — most efficient for large proteins.
-- `_predict_parallel.pyx`: script called by 
+- `_predict_parallel.pyx`: Core Cython module used by both parallel scripts. Implements optimized loops for speed.
+
 
 
 > ⚠️ For large proteins like `1C9YA`, you must set `treefraction = 0.3` in the parallel scripts to avoid memory crashes.
@@ -318,6 +387,8 @@ This section provides an overview of the main files and folders in the project, 
 ---
 
 ## 📄 Model Download and Preparation
+
+Scripts to retrieve and prepare PconsC3 model files:
 
 - `downloadTrees.py`: Downloads `.zip` tree models (`tlayer0.zip` to `tlayer5.zip`) from Google Drive.
 - `convert_to_hdf5.py`: Converts unzipped tree model folders into `.hdf5` files (requires running inside Docker).
@@ -328,20 +399,32 @@ This section provides an overview of the main files and folders in the project, 
 
 ## 📄 Batch Processing
 
+Scripts to run predictions across many proteins:
+
 - `batch_predict_hdf5.py`: Predicts all proteins sequentially (slow, 3–4h).
 - `batch_1.py`, `batch_2.py`, `batch_3.py`, `batch_4.py`: Run predictions in parallel by prefix (faster, 1–2h total).
 - `launch_missing_predictions.py`: Re-runs predictions for any proteins that failed or are missing output.
-- `evaluate_all_cases.py`: Computes metrics (Precision, Recall, etc.) and outputs them into `results_summary.csv`.
 
 ---
 
-## Results Evaluation
+## 📄 Results Evaluation
 
+Scripts to compute and enrich evaluation metrics:
+
+- `evaluate_all_cases.py`: Computes:
+    - `PPV`: precision on top L×2 contacts
+    - `PPV_long`: precision on long-range contacts (|i–j| ≥ 24)
+    -  B<sub>eff</sub>: effective sequence count 
+
+         Outputs:
+        - `csv/benchmark_summary.csv`
+        - `csv/results_summary.csv`
+      
+- `count_family_size.py`: Adds a `FamilySize` column (number of aligned sequences in the `.a3m`file) to each summary file.
+- `annotate_secondary_structure`: Annotates proteins with structural class using ECOD domain info.
+    Adds column:
+        - `annotate_secondary_structure`
+  
 
 ___
-### 📄 Other Files
 
-
-# Help and Support
-
-If you run into any problems with the software or observe it performing poorer than expected, we would appreciate an email to Marcin J. Skwark ([firstname@lastname.pl](mailto:firstname@lastname.pl) or [firstname.middleinitial.lastname@vanderbilt.edu](mailto:firstname.middleinitial.lastname@vanderbilt.edu)).
