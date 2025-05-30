@@ -45,9 +45,9 @@ if __name__ == "__main__":
     # adjust these filenames if yours differ
     enrich_csv(
         os.path.join(CSV_DIR, "results_summary.csv"),
-        os.path.join(CSV_DIR, "results_summary_with_size.csv")
+        os.path.join(CSV_DIR, "results_summary.csv")
     )
     enrich_csv(
         os.path.join(CSV_DIR, "benchmark_summary.csv"),
-        os.path.join(CSV_DIR, "benchmark_summary_with_size.csv")
+        os.path.join(CSV_DIR, "benchmark_summary.csv")
     )
