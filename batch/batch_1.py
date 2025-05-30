@@ -1,23 +1,38 @@
+#!/usr/bin/env python3
+# This code was developed with the assistance of ChatGPT-4o (OpenAI)
+
 import os
 import subprocess
 
-for protein in sorted(os.listdir("data")):
-    if not protein.startswith("1"):
-        continue
-    out_dir = f"results/{protein}"
-    os.makedirs(out_dir, exist_ok=True)
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+DATA_DIR = os.path.join(PROJECT_ROOT, "data")
+RESULTS_DIR = os.path.join(PROJECT_ROOT, "results")
+MODEL_DIR = "/app"
 
-    cmd = [
-        "python3", "predict-parallel-hdf5.py",
-        f"data/{protein}/gdca.out",
-        f"data/{protein}/plmdca.out",
-        f"data/{protein}/phycmap.out",
-        f"data/{protein}/netsurf.out",
-        f"data/{protein}/psipred.ss2",
-        f"data/{protein}/alignment.stats",
-        f"data/{protein}/alignment.a3m",
-        "/app", "0", f"{out_dir}/{protein}_output", "1"
-    ]
-    print("Running:", " ".join(cmd))
-    subprocess.run(cmd)
+def main():
+    for name in sorted(os.listdir(DATA_DIR)):
+        if not name.startswith("1"):  # prefix for batch_1
+            continue
+        prot_dir = os.path.join(RESULTS_DIR, name)
+        os.makedirs(prot_dir, exist_ok=True)
+        output_prefix = os.path.join(prot_dir, f"{name}_output")
+        args = [
+            "python3", "predict-parallel-hdf5.py",
+            os.path.join(DATA_DIR, name, "gdca.out"),
+            os.path.join(DATA_DIR, name, "plmdca.out"),
+            os.path.join(DATA_DIR, name, "phycmap.out"),
+            os.path.join(DATA_DIR, name, "netsurf.out"),
+            os.path.join(DATA_DIR, name, "psipred.ss2"),
+            os.path.join(DATA_DIR, name, "alignment.stats"),
+            os.path.join(DATA_DIR, name, "alignment.a3m"),
+            MODEL_DIR,
+            "0",
+            output_prefix,
+            "4"
+        ]
+        print(f"Running prediction for {name}")
+        subprocess.run(args)
+
+if __name__ == '__main__':
+    main()
 

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # This code was developed with the assistance of ChatGPT-4o (OpenAI)
 
 
@@ -181,14 +182,12 @@ def evaluate_ppv(preds, native, top_fraction=2.0, seq_length=None):
     return ppv
 
 
-def main(input_dir):
+def main():
     """Evaluate both 'results' and 'benchmarkset' predictions and write two CSV summaries."""
-    # resolve project root
-    base = os.path.basename(input_dir.rstrip(os.sep))
-    if base in ('results', 'benchmarkset'):
-        project_root = os.path.dirname(os.path.abspath(input_dir))
-    else:
-        project_root = input_dir
+    # Automatically resolve the project root path (parent of /scripts)
+    script_path = os.path.abspath(__file__)
+    project_root = os.path.abspath(os.path.join(os.path.dirname(script_path), ".."))
+    
     results_dir = os.path.join(project_root, 'results')
     bench_dir   = os.path.join(project_root, 'benchmarkset')
     data_dir    = os.path.join(project_root, 'data')
@@ -319,8 +318,5 @@ def main(input_dir):
             ])
 
     print(f"Wrote {out2}")
-if __name__=='__main__':
-    if len(sys.argv)!=2:
-        print("Usage: python evaluate_all_cases.py <project_root_or_results_or_benchmarkset_dir>")
-        sys.exit(1)
-    main(sys.argv[1])
+if __name__ == '__main__':
+    main()
