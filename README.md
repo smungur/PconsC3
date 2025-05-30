@@ -30,7 +30,7 @@ If you use **PconsC3**, please cite:
 ## 📑 Table of Contents
 
 - PconsC3
-  -  ⚖️ [License](#-license)
+  -  ⚖️ [License](#license)
   - 📚 [Citations](#-citations)
   - 📑 Table of Contents 
 - 📂 Dataset Structure  
